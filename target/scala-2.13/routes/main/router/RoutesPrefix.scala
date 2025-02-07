@@ -1,6 +1,6 @@
 // @GENERATOR:play-routes-compiler
 // @SOURCE:/Users/sakshijashnani/Desktop/SD Team Project/ITSD-DT2023-24-Template/conf/routes
-// @DATE:Fri Feb 07 20:06:34 GMT 2025
+// @DATE:Fri Feb 07 21:31:19 GMT 2025
 
 
 package router {
