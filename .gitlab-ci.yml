@@ -1,8 +1,12 @@
 image: openjdk:11  # Use OpenJDK 11 Docker image for the build environment
 
 before_script:
-  - java -version  # Check the Java version to confirm it’s Java 11
-  - sbt sbtVersion  # Check SBT version to ensure it's working
+  - apt-get update -y  # Update package list
+  - apt-get install -y curl gnupg  # Install necessary packages
+  - curl -sL https://dl.bintray.com/sbt/debian/sbt-1.5.5.deb -o sbt.deb  # Download sbt
+  - dpkg -i sbt.deb  # Install sbt
+  - sbt sbtVersion  # Check that sbt is installed and its version
+  - java -version  # Check Java version
 
 build:
   script:
