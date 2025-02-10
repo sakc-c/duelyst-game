@@ -1,0 +1,9 @@
+image: openjdk:11  # Use OpenJDK 11 Docker image for the build environment
+
+before_script:
+  - java -version  # Check the Java version to confirm it’s Java 11
+  - sbt sbtVersion  # Check SBT version to ensure it's working
+
+build:
+  script:
+    - sbt compile  # Compile the project with SBT
