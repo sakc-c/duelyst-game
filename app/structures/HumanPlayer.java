@@ -31,10 +31,26 @@ public class HumanPlayer extends Player {
             hand.remove(card); // Remove from hand
 
             BasicCommands.deleteCard(out, removedIndex + 1); //remove from UI
-            try { Thread.sleep(1000); } catch (InterruptedException e) { e.printStackTrace(); }
 
-            // Additional logic for placing the card on the board
+            try {
+                Thread.sleep(1000); // Wait for a second to show the card removal
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Shift any cards which come after deleted card to the left
+            for (int i = removedIndex; i < hand.size(); i++) {
+                Card shiftedCard = hand.get(i);
+                // Redraw the shifted card at its new position
+                BasicCommands.drawCard(out, shiftedCard, i + 1, 0); // Redraw card at new position
+            }
+
+            //delete the last card after shifting
+            BasicCommands.deleteCard(out, hand.size());
+
         }
+
+        // Additional logic for placing the card on the board
     }
 
     public void attack(Unit target) {
@@ -49,7 +65,11 @@ public class HumanPlayer extends Player {
 
                 int nextIndex = hand.indexOf(newCard) + 1; // Find next available index
                 BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
-                try { Thread.sleep(1000); } catch (InterruptedException e) { e.printStackTrace(); }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             } else {
                 System.out.println("No more cards left to draw!"); //if deck empty
             }
@@ -57,5 +77,4 @@ public class HumanPlayer extends Player {
             System.out.println("Hand is full!"); //if no space in hand
         }
     }
-
 }
