@@ -38,6 +38,7 @@ public class CommandDemo {
 		BasicCommands.addPlayer1Notification(out, "addPlayer1Notification", 2);
 		try {Thread.sleep(2000);} catch (InterruptedException e) {e.printStackTrace();}
 
+
 		
 		//--------------------------------------------------------
 		// Basic Draw Commands

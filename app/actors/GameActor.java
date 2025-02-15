@@ -21,6 +21,7 @@ import events.UnitMoving;
 import events.UnitStopped;
 import play.libs.Json;
 import structures.GameState;
+import structures.basic.Board;
 import utils.ImageListForPreLoad;
 import play.libs.Json;
 
@@ -40,6 +41,10 @@ public class GameActor extends AbstractActor {
 	private ActorRef out; // The ActorRef can be used to send messages to the front-end UI
 	private Map<String,EventProcessor> eventProcessors; // Classes used to process each type of event
 	private GameState gameState; // A class that can be used to hold game state information
+	private Board board;// pass refActor to the board
+
+
+
 
 	/**
 	 * Constructor for the GameActor. This is called by the GameController when the websocket
@@ -50,6 +55,7 @@ public class GameActor extends AbstractActor {
 	public GameActor(ActorRef out) {
 
 		this.out = out; // save this, so we can send commands to the front-end later
+		this.board = new Board(out);  // Pass ActorRef to Board
 
 		// create class instances to respond to the various events that we might recieve
 		eventProcessors = new HashMap<String,EventProcessor>();
