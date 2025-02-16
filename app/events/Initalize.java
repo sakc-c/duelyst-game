@@ -6,6 +6,7 @@ import akka.actor.ActorRef;
 import demo.CommandDemo;
 import demo.Loaders_2024_Check;
 import structures.GameState;
+import structures.basic.Board;
 
 /**
  * Indicates that both the core game loop in the browser is starting, meaning
@@ -27,7 +28,8 @@ public class Initalize implements EventProcessor{
 		gameState.gameInitalised = true;
 		
 		gameState.something = true;
-		
+		Board board = new Board(out);
+		gameState.setBoard(board); // Store the board in GameState
 		// User 1 makes a change
 		//CommandDemo.executeDemo(out); // this executes the command demo, comment out this when implementing your solution
 		//Loaders_2024_Check.test(out);
