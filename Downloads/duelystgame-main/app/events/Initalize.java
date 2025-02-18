@@ -15,7 +15,7 @@ import structures.HumanPlayer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
+import structures.AIController;
 /**
  * Indicates that both the core game loop in the browser is starting, meaning
  * that it is ready to recieve commands from the back-end.
@@ -39,47 +39,41 @@ public class Initalize implements EventProcessor{
 
 		Board board = new Board(out); // initalizing the board
 		gameState.setBoard(board); // Store the board in GameState
-
-		
+ 
 		
         // Initialise Players
-		gameState.player1 = new Player(20, 2);
-		gameState.player2 = new Player(20, 2);
+		gameState.player1 = new HumanPlayer(20, 2);
+		gameState.player2 = new AIController(20, 2);
 
 
 		// Set Player 1 & 2 health
 		BasicCommands.setPlayer1Health(out, gameState.player1);
 		BasicCommands.setPlayer2Health(out, gameState.player2);
+		
+	    // Initialise hands
+	    gameState.player1Hand = new ArrayList<>();
+	    gameState.player2Hand = new ArrayList<>();
+		
+		// Draw initial hands
+		drawInitialHands(out, gameState);
+	}
 
-		try {
-		  Thread.sleep(100);
-		} catch (InterruptedException e) {
-     		e.printStackTrace();
-		}
-
-		// Load decks for both players
-		List<Card> player1Deck = OrderedCardLoader.getPlayer1Cards(1);
-     		// Shuffle the deck
-		Collections.shuffle(player1Deck);
-		gameState.player1Deck = player1Deck;
-
-		List<Card> player2Deck = OrderedCardLoader.getPlayer2Cards(1);
-     		// Shuffle the deck
-		Collections.shuffle(player2Deck);
-		gameState.player2Deck = player2Deck;
-
-		// Draw initial hand (3 cards) for Player 1
+	private void drawInitialHands(ActorRef out, GameState gameState) {
 		for (int i = 0; i < 3; i++) {
-			Card card = gameState.player1Deck.remove(0); // Take from the top of the deck
-			gameState.player1Hand.add(card); // Add to hand
-			drawCard(out, card, i + 1); // Display the card (hand position 1-3)
+		      drawCardForPlayer(out, gameState.player1); // Initialise the hands of the HumanPlayer with 3 cards
+		      drawCardForPlayer(out, gameState.player2); // Initialise the hands of the AIController with 3 cards
 		}
-
+	}
+		
+	private void drawCardForPlayer(ActorRef out, GameState gameState, Player player) {
+		gameState.player.drawCard(out); // Calls the drawCard() method on the HumanPlayer and AIController classes
+	}
+		
+		
     
 		// User 1 makes a change
 		//CommandDemo.executeDemo(out); // this executes the command demo, comment out this when implementing your solution
 		//Loaders_2024_Check.test(out);
-	}
 
 }
 
