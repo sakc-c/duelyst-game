@@ -5,18 +5,19 @@ import commands.BasicCommands;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Board {
     private Tile[][] tiles; // 9x5 grid of tiles
-    private Unit playerAvatar; // The player's Avatar unit
-    private Unit aiAvatar;
     private ActorRef out;
+    private Map<Tile, Unit> unitMap; // Track which unit is on which tile
 
     public Board(ActorRef out) {
         this.out = out;
         tiles = new Tile[9][5]; // Initialize the board
         initializeTiles(); // Generate tiles
-        placePlayerAvatar(); // Place the player's Avatar at (2,3)
-        placeAIAvatar(); // place AI avatar at mirrored position of human player
+        unitMap = new HashMap<>(); // Initialize the unit tracking map
     }
 
     private void initializeTiles() {
@@ -28,33 +29,27 @@ public class Board {
         }
     }
 
-    private void placePlayerAvatar() {
-        Tile avatarTile = tiles[2][3]; // Get the tile at (2,3)
-        playerAvatar = BasicObjectBuilders.loadUnit(StaticConfFiles.humanAvatar, 1, Unit.class);// loading the player avatar
-        Position avatarPosition = new Position(0, 0, 2, 3); // placing the player avatar
-        playerAvatar.setPosition(avatarPosition);
-        BasicCommands.drawUnit(out, playerAvatar, avatarTile); // Draw the player Avatar
+    public void placePlayerAvatar(Unit playerAvatar) {
+        Tile avatarTile = tiles[1][2];
+        playerAvatar.setPositionByTile(avatarTile);
+        BasicCommands.drawUnit(out, playerAvatar, avatarTile);
     }
 
-    private void placeAIAvatar() {
-        int mirroredx = 9-2-1; // calculating the mirrored position
-        Tile aiTile =  tiles[mirroredx][3];
-        aiAvatar = BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, 2, Unit.class); // loading AI avatar
-        Position aiPosition = new Position(0, 0, mirroredx, 3);//placing the AI avatar
-        aiAvatar.setPosition(aiPosition); // Assigns the AI avatar's position, including tile coordinates (tilex, tiley)
-// and pixel coordinates (xpos, ypos), so it can be drawn at the correct location on the board
-        BasicCommands.drawUnit(out, aiAvatar, aiTile); // Draw the AI Avatar
-
+    public void placeAIAvatar(Unit aiAvatar) {
+        int mirroredX = 9 - 1 - 1;
+        Tile aiTile = tiles[mirroredX][2];
+        aiAvatar.setPositionByTile(aiTile);
+        BasicCommands.drawUnit(out, aiAvatar, aiTile);
     }
 
-    public Tile getTile(int x, int y) {
-        return tiles[x][y]; // Retrieve a specific tile
+    public Unit getUnitOnTile(Tile tile) {
+        return unitMap.get(tile); // Returns the unit if one is on this tile, otherwise null
     }
 
-    public Unit getPlayerAvatar() {
-        return playerAvatar; // Return the stored Avatar unit
+    public void removeUnitFromTile(Tile tile) {
+        Unit unit = unitMap.get(tile); // Returns the unit to remove
+        BasicCommands.deleteUnit(out, unit);
+        unitMap.remove(tile); // Remove from map
     }
-    public Unit getAIAvatar() {
-        return aiAvatar;//return the stored AI avatar unit
-    }
+
 }

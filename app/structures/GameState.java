@@ -1,6 +1,13 @@
 package structures;
 
+import structures.basic.Board;
+import structures.basic.Card;
 import structures.basic.Player;
+import structures.basic.Unit;
+import utils.BasicObjectBuilders;
+import utils.StaticConfFiles;
+
+import java.util.List;
 
 /**
  * This class can be used to hold information about the on-going game.
@@ -10,43 +17,50 @@ import structures.basic.Player;
  *
  */
 public class GameState {
-    private int currentTurn;  // Current turn number
-    private Player currentPlayer;  // Player whose turn it is
-    private Player opponentPlayer;  // The opponent player
+    private int currentTurn;
+    private HumanPlayer player1;
+    private AIController player2;
+    private boolean isHumanTurn;
+    private boolean gameInitialized;
 
     public GameState() {
-        this.currentTurn = 1;  // Start the game on turn 1
-        this.currentPlayer = null;  // Initialize event handler to set up
-        this.opponentPlayer = null;  // Initialize event handler to set up
+        this.currentTurn = 1;
+        this.isHumanTurn = true; //start with player's turn
+        this.gameInitialized = false; //needs to be initialised
     }
 
-    // Method to initialize the players for the first time
-    public void initializePlayers(Player player1, Player player2) {
-        this.currentPlayer = player1;  // Set the current player
-        this.opponentPlayer = player2;  // Set the opponent player
+    public void initializePlayers(HumanPlayer player1, AIController player2) {
+        this.player1 = player1;
+        this.player2 = player2;
+        this.player1.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.humanAvatar, 1, Unit.class));
+        this.player2.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, 2, Unit.class));
+    }
+
+    public void setBoard(Board board) {
+        board.placePlayerAvatar(player1.getAvatar());
+        board.placeAIAvatar(player2.getAvatar());
     }
 
     public void nextTurn() {
-        this.currentTurn++;  // Increment the turn number
-
-        // Swap current player and opponent player
-        Player temp = this.currentPlayer;
-        this.currentPlayer = this.opponentPlayer;
-        this.opponentPlayer = temp;
+        this.isHumanTurn = !this.isHumanTurn;
+        if (!isHumanTurn) {
+            this.currentTurn++;
+        }
     }
 
-    // Getter for the current turn number
     public int getCurrentTurn() {
         return currentTurn;
     }
 
-    // Getter for the current player
     public Player getCurrentPlayer() {
-        return currentPlayer;
+        return isHumanTurn ? player1 : player2;
     }
 
-    // Getter for the opponent player
     public Player getOpponentPlayer() {
-        return opponentPlayer;
+        return isHumanTurn ? player2 : player1;
+    }
+
+    public void setGameInitialized(boolean initialized) {
+        this.gameInitialized = initialized;
     }
 }
