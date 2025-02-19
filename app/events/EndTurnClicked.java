@@ -30,6 +30,7 @@ public class EndTurnClicked implements EventProcessor{
 
 		// 1. Set unused mana to 0 for current player
 		currentPlayer.setMana(0);
+		BasicCommands.setPlayer1Mana(out, currentPlayer);
 
 		// 2. Draw a card for the current player
 		if (currentPlayer instanceof HumanPlayer) {

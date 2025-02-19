@@ -16,12 +16,31 @@ public class HumanPlayer extends Player {
     private List<Card> hand;
     private List<Card> deck;
     private Unit avatar;
+    private ActorRef out;
 
-    public HumanPlayer(int health, int mana) {
+    public HumanPlayer(int health, int mana, ActorRef out) {
         super(health, mana);
         this.hand = new ArrayList<>();
         this.deck = OrderedCardLoader.getPlayer1Cards(1);
-        this.avatar = null; //we'll load it in Initialize event handler
+        this.out = out;
+    }
+
+    public List<Card> getHand() {
+        return hand;
+    }
+
+    public Unit getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(Unit avatar) {
+        this.avatar = avatar;
+    }
+
+    public void drawInitialHand(ActorRef out) {
+        for (int i = 0; i < 3; i++) {
+            drawCard(out);
+        }
     }
 
     public void playCard(Card card, ActorRef out) {
@@ -65,16 +84,7 @@ public class HumanPlayer extends Player {
 
                 int nextIndex = hand.indexOf(newCard) + 1; // Find next available index
                 BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                System.out.println("No more cards left to draw!"); //if deck empty
             }
-        } else {
-            System.out.println("Hand is full!"); //if no space in hand
         }
     }
 }
