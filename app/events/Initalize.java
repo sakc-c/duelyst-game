@@ -38,12 +38,22 @@ public class Initalize implements EventProcessor {
 		// Set Player 1 & 2 health
 		BasicCommands.setPlayer1Health(out, player1);
 		BasicCommands.setPlayer2Health(out, player2);
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			System.out.println("Error");
+		}
 
 		//set Attack and Health for both Avatars
 		BasicCommands.setUnitAttack(out, player1.getAvatar(), 2);
 		BasicCommands.setUnitHealth(out, player1.getAvatar(), 20);
 		BasicCommands.setUnitAttack(out, player2.getAvatar(), 2);
 		BasicCommands.setUnitHealth(out, player2.getAvatar(), 20);
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			System.out.println("Error");
+		}
 
 		// set Mana to 2 at the start of the game
 		player1.setMana(2);
@@ -52,6 +62,10 @@ public class Initalize implements EventProcessor {
 		// Draw initial hands
 		player1.drawInitialHand(out);
 		player2.drawInitialHand();
+
+		//set Avatar owners
+		player1.getAvatar().setOwner(player1);
+		player2.getAvatar().setOwner(player2);
 
 		// Mark the game as initialized
 		gameState.setGameInitialized(true);

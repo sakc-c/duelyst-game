@@ -46,6 +46,9 @@ public class EndTurnClicked implements EventProcessor{
 
 		// 3. The opponent gets mana (turn + 1)
 		int opponentMana = gameState.getCurrentTurn() + 1;
+		if (opponentMana>9) {
+			opponentMana = 9;
+		}
 		opponentPlayer.setMana(opponentMana);
 		BasicCommands.setPlayer2Mana(out, opponentPlayer);
 

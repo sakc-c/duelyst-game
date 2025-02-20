@@ -1,13 +1,11 @@
 package structures;
 
-import structures.basic.Board;
-import structures.basic.Card;
-import structures.basic.Player;
-import structures.basic.Unit;
+import commands.BasicCommands;
+import structures.basic.*;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * This class can be used to hold information about the on-going game.
@@ -22,11 +20,16 @@ public class GameState {
     private AIController player2;
     private boolean isHumanTurn;
     private boolean gameInitialized;
+    private Board board;
+    private Set<Tile> highlightedTiles;  // Track highlighted tiles
+    private Tile sourceTile; // Track the source tile for highlighting
+
 
     public GameState() {
         this.currentTurn = 1;
         this.isHumanTurn = true; //start with player's turn
         this.gameInitialized = false; //needs to be initialised
+        highlightedTiles = new HashSet<>();
     }
 
     public void initializePlayers(HumanPlayer player1, AIController player2) {
@@ -37,8 +40,9 @@ public class GameState {
     }
 
     public void setBoard(Board board) {
-        board.placePlayerAvatar(player1.getAvatar());
-        board.placeAIAvatar(player2.getAvatar());
+        this.board = board;
+        board.placeUnitOnTile(player1.getAvatar(), board.getTile(1, 2));
+        board.placeUnitOnTile(player2.getAvatar(), board.getTile(7, 2));
     }
 
     public void nextTurn() {
@@ -63,4 +67,33 @@ public class GameState {
     public void setGameInitialized(boolean initialized) {
         this.gameInitialized = initialized;
     }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public void addHighlightedTile(Tile tile) {
+        highlightedTiles.add(tile);
+    }
+
+    public void clearHighlightedTiles() {
+        highlightedTiles.clear();
+    }
+
+    public Set<Tile> getHighlightedTiles() {
+        return highlightedTiles;
+    }
+
+    public boolean isHighlightedTile(Tile tile) {
+        return highlightedTiles.contains(tile);
+    }
+
+    public Tile getSourceTile() {
+        return sourceTile;
+    }
+
+    public void setSourceTile(Tile sourceTile) {
+        this.sourceTile = sourceTile;
+    }
+
 }
