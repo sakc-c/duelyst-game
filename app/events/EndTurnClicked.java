@@ -25,35 +25,43 @@ public class EndTurnClicked implements EventProcessor{
 	@Override
 	public void processEvent(ActorRef out, GameState gameState, JsonNode message) {
 		// Get the current player and opponent
-		Player currentPlayer = gameState.getCurrentPlayer();
-		Player opponentPlayer = gameState.getOpponentPlayer();
+		Player endTurnPlayer = gameState.getCurrentPlayer();
+		Player startTurnPlayer = gameState.getOpponentPlayer();
 
-		// 1. Set unused mana to 0 for current player
-		currentPlayer.setMana(0);
-		BasicCommands.setPlayer1Mana(out, currentPlayer);
-
-		// 2. Draw a card for the current player
-		if (currentPlayer instanceof HumanPlayer) {
-			HumanPlayer humanPlayer = (HumanPlayer) currentPlayer;
-			humanPlayer.drawCard(out);
-			BasicCommands.addPlayer1Notification(out, "AI's Turn", 1);
-		} else if (currentPlayer instanceof AIController) {
-			AIController aiPlayer = (AIController) currentPlayer;
-			aiPlayer.drawCard();  // AI draws a card automatically
-			aiPlayer.playCard(out, gameState);  // AI plays a card automatically based on logic on ends turn
-			BasicCommands.addPlayer1Notification(out, "Your Turn", 1);
+		// Set unused mana to 0 for the player who ended turn
+		endTurnPlayer.setMana(0);
+		if (endTurnPlayer instanceof HumanPlayer) {
+			BasicCommands.setPlayer1Mana(out, endTurnPlayer);
+		} else if (endTurnPlayer instanceof AIController) {
+			BasicCommands.setPlayer2Mana(out, endTurnPlayer);
 		}
+		try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
 
-		// 3. The opponent gets mana (turn + 1)
+		// The player to start turn gets mana (turn + 1)
 		int opponentMana = gameState.getCurrentTurn() + 1;
-		if (opponentMana>9) {
+		if (opponentMana > 9) {
 			opponentMana = 9;
 		}
-		opponentPlayer.setMana(opponentMana);
-		BasicCommands.setPlayer2Mana(out, opponentPlayer);
+		startTurnPlayer.setMana(opponentMana);
+		if (startTurnPlayer instanceof HumanPlayer) {
+			BasicCommands.setPlayer1Mana(out, startTurnPlayer);
+		} else if (startTurnPlayer instanceof AIController) {
+			BasicCommands.setPlayer2Mana(out, startTurnPlayer);
+		}
+		try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
 
-		// 4. Switch to the opponent's turn in GameState
+		// Switch to the opponent's turn in GameState
 		gameState.nextTurn();
+
+		// Draw a card for the player ending turn
+		if (endTurnPlayer instanceof HumanPlayer) {
+			((HumanPlayer)endTurnPlayer).drawCard(out);
+			BasicCommands.addPlayer1Notification(out, "AI's Turn", 1);
+			//((AIController)startTurnPlayer).playCard(out, gameState);  // AI plays a card automatically and after that triggers end turn
+		} else if (endTurnPlayer instanceof AIController) {
+			((AIController)endTurnPlayer).drawCard();  // AI draws a card automatically
+			BasicCommands.addPlayer1Notification(out, "Your Turn", 1);
+		}
 	}
 
 
