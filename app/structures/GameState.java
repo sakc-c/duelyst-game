@@ -22,6 +22,7 @@ public class GameState {
     private boolean gameInitialized;
     private Board board;
     private Set<Tile> highlightedTiles;  // Track highlighted tiles
+    private Tile sourceTile; // Track the source tile for highlighting
 
 
     public GameState() {
@@ -85,6 +86,14 @@ public class GameState {
 
     public boolean isHighlightedTile(Tile tile) {
         return highlightedTiles.contains(tile);
+    }
+
+    public Tile getSourceTile() {
+        return sourceTile;
+    }
+
+    public void setSourceTile(Tile sourceTile) {
+        this.sourceTile = sourceTile;
     }
 
 }

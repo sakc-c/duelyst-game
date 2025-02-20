@@ -15,6 +15,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.WebSocket;
 import structures.User;
+import akka.stream.OverflowStrategy;
 
 /**
  * This is the Controller class for the game. 
@@ -26,6 +27,7 @@ public class GameScreenController extends Controller {
 	private final ActorSystem actorSystem;
 	private final Materializer materializer;
 	Form<User> userForm = null;
+	private final int bufferSize = 256;
 	
 	
 	@Inject
@@ -33,6 +35,7 @@ public class GameScreenController extends Controller {
 		this.actorSystem = actorSystem;
 		this.materializer = materializer;
 		userForm = formFactory.form(User.class);
+
 	}
 
 	/**
@@ -42,7 +45,8 @@ public class GameScreenController extends Controller {
 	public WebSocket socket() {
 
 		return WebSocket.Json.accept(
-				request -> ActorFlow.actorRef(this::createGameActor, actorSystem, materializer));
+				request -> ActorFlow.actorRef(this::createGameActor, bufferSize, OverflowStrategy.fail(),actorSystem, materializer));
+
 	}
 
 	/**
