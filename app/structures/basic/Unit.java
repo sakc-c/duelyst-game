@@ -2,6 +2,7 @@ package structures.basic;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import structures.HumanPlayer;
 
 /**
  * This is a representation of a Unit on the game board.
@@ -25,6 +26,14 @@ public class Unit {
 	Position position;
 	UnitAnimationSet animations;
 	ImageCorrection correction;
+
+	//new attributes
+	private Player owner;
+	private int currentHealth;
+	private int maxHealth;
+	private int attackPower;
+	private boolean isMoved;
+	private boolean isAttacked;
 	
 	public Unit() {}
 	
@@ -58,6 +67,23 @@ public class Unit {
 		this.position = position;
 		this.animations = animations;
 		this.correction = correction;
+	}
+
+	public Unit(int id, UnitAnimationSet animations, ImageCorrection correction, Tile currentTile,
+				Player owner, int maxHealth, int attackPower) {
+		this.id = id;
+		this.animation = UnitAnimationType.idle;
+		this.position = new Position(currentTile.getXpos(), currentTile.getYpos(), currentTile.getTilex(), currentTile.getTiley());
+		this.animations = animations;
+		this.correction = correction;
+
+		// Initialize new attributes
+		this.owner = owner;
+		this.maxHealth = maxHealth;
+		this.currentHealth = maxHealth;
+		this.attackPower = attackPower;
+		this.isMoved = false;
+		this.isAttacked = false;
 	}
 
 	public int getId() {
@@ -106,6 +132,44 @@ public class Unit {
 	public void setPositionByTile(Tile tile) {
 		position = new Position(tile.getXpos(),tile.getYpos(),tile.getTilex(),tile.getTiley());
 	}
-	
-	
+
+	//Additional methods added below
+
+	public Player getOwner() {
+		return owner;
+	}
+
+	public void setOwner(Player player) {
+		owner = player;
+	}
+
+	public int getCurrentHealth() {
+		return currentHealth;
+	}
+
+	public int getAttackPower() {
+		return attackPower;
+	}
+
+	public boolean isAlive() {
+		return currentHealth > 0;
+	}
+
+	public void takeDamage(int damage) {
+		currentHealth -= damage;
+		if (currentHealth < 0) currentHealth = 0;
+	}
+
+	public void heal(int amount) {
+		currentHealth += amount;
+		if (currentHealth > maxHealth) currentHealth = maxHealth;
+	}
+
+	public boolean hasMoved() {
+		return isMoved;
+	}
+
+	public void setHasMoved(boolean b) {
+		isMoved = b;
+	}
 }

@@ -53,6 +53,10 @@ public class Initalize implements EventProcessor {
 		player1.drawInitialHand(out);
 		player2.drawInitialHand();
 
+		//set Avatar owners
+		player1.getAvatar().setOwner(player1);
+		player2.getAvatar().setOwner(player2);
+
 		// Mark the game as initialized
 		gameState.setGameInitialized(true);
 	}
