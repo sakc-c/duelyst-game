@@ -46,7 +46,14 @@ public class Board {
             if (currentTile != null) {
                 unitMap.remove(currentTile); //from the map remove the key-value pair to keep map updated
                 BasicCommands.moveUnitToTile(out, unit, tile);
+                BasicCommands.playUnitAnimation(out, unit, UnitAnimationType.move);
+                try {
+                    Thread.sleep(200); // Small delay for animation
+                } catch (InterruptedException e) {
+                    System.out.println("Error");
+                }
                 unitMap.put(tile,unit);
+                unit.setHasMoved(true);
                 return;
             }
         }
@@ -56,8 +63,7 @@ public class Board {
         BasicCommands.drawUnit(out, unit, tile);
     }
 
-    public Unit getUnitOnTile(int x, int y) {
-        Tile tile = getTile(x,y);
+    public Unit getUnitOnTile(Tile tile) {
         return unitMap.get(tile); // Returns the unit if one is on this tile, otherwise null
     }
 

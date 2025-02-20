@@ -23,6 +23,7 @@ public class GameState {
     private Board board;
     private Set<Tile> highlightedTiles;  // Track highlighted tiles
     private Tile sourceTile; // Track the source tile for highlighting
+    private Unit selectedUnit;
 
 
     public GameState() {
@@ -49,6 +50,13 @@ public class GameState {
         this.isHumanTurn = !this.isHumanTurn;
         if (!isHumanTurn) {
             this.currentTurn++;
+        }
+        resetHasMovedFlags();
+    }
+
+    public void resetHasMovedFlags() {
+        for (Unit unit : board.getUnitMap().values()) {
+            unit.setHasMoved(false);
         }
     }
 
@@ -96,4 +104,11 @@ public class GameState {
         this.sourceTile = sourceTile;
     }
 
+    public Unit getSelectedUnit() {
+        return selectedUnit;
+    }
+
+    public void setSelectedUnit(Unit selectedUnit) {
+        this.selectedUnit = selectedUnit;
+    }
 }
