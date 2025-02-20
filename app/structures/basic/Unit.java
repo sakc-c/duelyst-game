@@ -27,8 +27,9 @@ public class Unit {
 	UnitAnimationSet animations;
 	ImageCorrection correction;
 
-	//new attributes
+	@JsonIgnore
 	private Player owner;
+
 	private int currentHealth;
 	private int maxHealth;
 	private int attackPower;

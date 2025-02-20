@@ -10,6 +10,7 @@ import structures.GameState;
 import structures.HumanPlayer;
 import structures.basic.Board;
 import commands.BasicCommands;
+import structures.basic.Player;
 
 /**
  * Indicates that both the core game loop in the browser is starting, meaning
