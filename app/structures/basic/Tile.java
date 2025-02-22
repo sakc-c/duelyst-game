@@ -29,6 +29,8 @@ public class Tile {
 	int tilex;
 	int tiley;
 	
+	private Unit unit;
+	
 	public Tile() {}
 	
 	public Tile(String tileTexture, int xpos, int ypos, int width, int height, int tilex, int tiley) {
@@ -114,5 +116,13 @@ public class Tile {
 		return null;
 		
 	}
+	
+	public Unit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+    }
 	
 }

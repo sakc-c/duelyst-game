@@ -5,7 +5,9 @@ import commands.BasicCommands;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Board {
@@ -40,8 +42,10 @@ public class Board {
 
 
     public void placeUnitOnTile(Unit unit, Tile tile) {
+    	
+    	
         // Remove the unit from its current tile (if any)
-        if (unitMap.containsValue(unit)) {
+       if (unitMap.containsValue(unit)) {
             Tile currentTile = getTileForUnit(unit);
             if (currentTile != null) {
                 unitMap.remove(currentTile); //from the map remove the key-value pair to keep map updated
@@ -61,7 +65,7 @@ public class Board {
         unit.setPositionByTile(tile);
         unitMap.put(tile, unit);
         BasicCommands.drawUnit(out, unit, tile);
-    }
+    } 
 
     public Unit getUnitOnTile(Tile tile) {
         return unitMap.get(tile); // Returns the unit if one is on this tile, otherwise null
@@ -80,5 +84,8 @@ public class Board {
     public Tile getTile(int x, int y) {
         return tiles[x][y]; // Retrieve a specific tile
     }
+    
+    
+    
 
 }

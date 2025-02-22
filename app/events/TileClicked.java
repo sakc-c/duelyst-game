@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import akka.actor.ActorRef;
 import commands.BasicCommands;
 import structures.GameState;
+import structures.basic.Card;
 import structures.basic.Tile;
 import structures.basic.Unit;
+import utils.BasicObjectBuilders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,12 +43,15 @@ public class TileClicked implements EventProcessor{
 
 		Tile clickedTile = gameState.getBoard().getTile(tilex, tiley);
 		Unit unitOnTile = gameState.getBoard().getUnitOnTile(clickedTile);
+		Card selectedCard = gameState.getSelectedCard();
+		
+		
 
-
+		
 		// check if source tile is clicked again - remove highlight
 		if (gameState.getSourceTile() != null &&
 				gameState.getSourceTile().equals(clickedTile)) {
-			clearHighlights(gameState, out);
+			gameState.clearAllHighlights(out);
 			gameState.setSourceTile(null); // Reset the source tile
 			gameState.setSelectedUnit(null); //Reset the selected unit
 		} //if tile is selected for movement or attack
@@ -59,12 +64,14 @@ public class TileClicked implements EventProcessor{
 
 			if (gameState.isHighlightedTile(clickedTile) && !gameState.getSelectedUnit().hasMoved()) {
 				gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), clickedTile);
-				clearHighlights(gameState,out);
+				// Update the unit's position using setPositionByTile
+			    gameState.getSelectedUnit().setPositionByTile(clickedTile);
+				gameState.clearAllHighlights(out);
 				gameState.setSourceTile(null);
 				gameState.setSelectedUnit(null);
 			} else {
 				//clicked on a non-highlighted tile, reset selection & no movement (should we do any notification?)
-				clearHighlights(gameState, out);
+				gameState.clearAllHighlights(out);
 				gameState.setSourceTile(null);
 				gameState.setSelectedUnit(null);
 			}
@@ -77,11 +84,54 @@ public class TileClicked implements EventProcessor{
 				gameState.setSelectedUnit(unitOnTile); // Set the selected unit
 			}
 		}
+		
+		// Check if a card is selected
+        if (selectedCard != null) {
+            // If the selected card is a creature card
+            if (selectedCard.isCreature()) {
+                handleCreatureCardClick(out, gameState, clickedTile, unitOnTile);
+            }
+            // If the selected card is a spell card
+            else {
+                handleSpellCardClick(out, gameState, clickedTile, unitOnTile);
+            }
+        }
+        
 	}
+	
+	private void handleCreatureCardClick(ActorRef out, GameState gameState, Tile clickedTile, Unit unitOnTile) {
+        // Check if the clicked tile is valid for summoning
+        if (gameState.isHighlightedTile(clickedTile) && unitOnTile == null) {
+            // Summon the creature on the clicked tile
+            summonCreature(out, gameState, clickedTile);
+            gameState.clearAllHighlights(out); // Clear highlights after summoning
+            gameState.setSelectedCard(null); // Reset the selected card
+        } else {
+            // Clicked on an invalid tile, reset selection
+            gameState.clearAllHighlights(out);
+            gameState.setSelectedCard(null);
+        }
+    }
+	
+	private void handleSpellCardClick(ActorRef out, GameState gameState, Tile clickedTile, Unit unitOnTile) {
+        // Handle spell-specific logic (e.g., cast spell on the clicked tile)
+        // For now, just clear highlights and reset the selected card
+        gameState.clearAllHighlights(out);
+        gameState.setSelectedCard(null);
+    }
+	
+	private void summonCreature(ActorRef out, GameState gameState, Tile tile) {
+        // Implement logic to summon the creature on the tile
+        Card selectedCard = gameState.getSelectedCard();
+        Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
+        newUnit.setOwner(gameState.getCurrentPlayer());
+        gameState.getBoard().placeUnitOnTile(newUnit, tile);
+        BasicCommands.drawUnit(out, newUnit, tile);
+    }
 
 	private void highlightValidTiles(int tileX, int tileY, GameState gameState, ActorRef out) {
 		// Clear previous highlights
-		clearHighlights(gameState, out);
+		gameState.clearAllHighlights(out);
 
 		// Define movement ranges
 		int[][] validDirections = {{-2, 0}, {-1, 0}, {1, 0},{2, 0}, {0, -2}, {0, 2},{0, -1}, {0,1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
@@ -117,17 +167,9 @@ public class TileClicked implements EventProcessor{
 
 	}
 
-	private void clearHighlights(GameState gameState, ActorRef out) {
-		for (Tile tile : gameState.getHighlightedTiles()) {
-			BasicCommands.drawTile(out, tile, 0); // Reset highlight mode = 0
-		}
-		try {
-			Thread.sleep(200);
-		} catch (InterruptedException e) {
-			System.out.println("Error");
-		}
-		gameState.clearHighlightedTiles(); // Clear the list in gameState
-	}
+	
+	
+	
 
 
-	}
+}

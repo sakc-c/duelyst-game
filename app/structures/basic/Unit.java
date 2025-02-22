@@ -3,6 +3,7 @@ package structures.basic;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import structures.HumanPlayer;
+import structures.GameState;
 
 /**
  * This is a representation of a Unit on the game board.
@@ -35,6 +36,7 @@ public class Unit {
 	private int attackPower;
 	private boolean isMoved;
 	private boolean isAttacked;
+	private int playerId;
 	
 	public Unit() {}
 	
@@ -174,4 +176,15 @@ public class Unit {
 	public void setHasMoved(boolean b) {
 		isMoved = b;
 	}
+	
+	public int getPlayerId() {
+        return playerId;
+    }
+
+    public void setPlayerId(int playerId) {
+        this.playerId = playerId;
+    }
+    
+   
+
 }
