@@ -5,19 +5,18 @@ import commands.BasicCommands;
 import structures.basic.Card;
 import structures.basic.Player;
 import structures.basic.Unit;
+import utils.BasicObjectBuilders;
 import utils.OrderedCardLoader;
+import utils.StaticConfFiles;
 
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 public class HumanPlayer extends Player {
     private List<Card> hand;
     private List<Card> deck;
     private Unit avatar;
     private ActorRef out;
-
 
     public HumanPlayer(int health, int mana, ActorRef out) {
         super(health, mana);

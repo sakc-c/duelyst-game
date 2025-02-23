@@ -1,11 +1,19 @@
 package events;
 
 
-import akka.actor.ActorRef;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
+import akka.actor.ActorRef;
+import commands.BasicCommands;
 import structures.GameState;
+import structures.HumanPlayer;
 import structures.basic.Card;
 import structures.basic.Player;
+import structures.basic.Position;
+import structures.basic.Tile;
+import structures.basic.Unit;
 
 /**
  * Indicates that the user has clicked an object on the game canvas, in this case a card.
@@ -19,30 +27,91 @@ import structures.basic.Player;
  * @author Dr. Richard McCreadie
  *
  */
-public class CardClicked implements EventProcessor {
+public class CardClicked implements EventProcessor{
 
 	@Override
 	public void processEvent(ActorRef out, GameState gameState, JsonNode message) {
-
+		
+		
 		int handPosition = message.get("position").asInt();
-		//Get the Player object, assuming player 1 from the GameState.
-		Player player = gameState.getCurrentPlayer();
+		HumanPlayer player = (HumanPlayer) gameState.getCurrentPlayer();
+        List<Card> hand = player.getHand();
+        
+       
 
-		//Validate that the player object exists
-		if (player != null) {
-			// Access the card from the player's hand using the handIndex
-			Card clickedCard = player.getCard(handPosition);
+     // Clear the highlight of the previously selected card (if any)
+        Card previouslySelectedCard = gameState.getSelectedCard();
+        if (previouslySelectedCard != null) {
+            gameState.clearAllHighlights(out);
+            int previousPosition = hand.indexOf(previouslySelectedCard) + 1; // Get the position of the previously selected card
+            BasicCommands.drawCard(out, previouslySelectedCard, previousPosition, 0); // Clear highlight (mode = 0)
+            gameState.setSelectedCard(null);
+        }
 
-			//Checking if the card is valid.
-			// should notify error to the UI if card is null.
-			if (clickedCard != null) {
-				//Set the selected card in GameState
-				gameState.setSelectedCard(clickedCard);
-				System.out.println("Card selected: " + clickedCard.getCardname());
-			} else {
-				System.out.println("No card found at index: " + handPosition);
-				//**Send an error message to the front-end**
-			}
-		}
-	}
+        // Highlight the newly clicked card
+        else if (handPosition >= 1 && handPosition <= hand.size()) {
+            Card clickedCard = hand.get(handPosition - 1); // Adjust for 0-based index
+            BasicCommands.drawCard(out, clickedCard, handPosition, 1); // Highlight with mode = 1
+
+            // Store the selected card in the GameState
+            gameState.setSelectedCard(clickedCard);
+            
+         // Check if the clicked card is a creature card
+            if (clickedCard.isCreature()) {
+                // Highlight valid tiles for summoning
+            	highlightValidSummonTiles(out, gameState, message);
+            } else {
+                // If the card is a spell, clear any existing tile highlights
+                gameState.clearAllHighlights(out);
+                // Optionally, handle spell-specific logic here (e.g., highlight tiles for spell targeting)
+            }
+        }
+    }
+
+    private void highlightValidSummonTiles(ActorRef out, GameState gameState, JsonNode message) {
+        // Clear all previously highlighted tiles
+        gameState.clearAllHighlights(out);
+
+        // Get all tiles occupied by the current player
+        List<Tile> occupiedTiles = gameState.getTilesOccupiedByCurrentPlayer();
+
+        // Define all 8 possible adjacent directions
+        int[][] directions = {
+                {-1, -1}, {-1, 0}, {-1, 1}, // Top-left, Top, Top-right
+                {0, -1},          {0, 1},  // Left,       Right
+                {1, -1},  {1, 0}, {1, 1}   // Bottom-left, Bottom, Bottom-right
+        };
+
+        // Iterate through all occupied tiles
+        for (Tile occupiedTile : occupiedTiles) {
+            int tilex = occupiedTile.getTilex();
+            int tiley = occupiedTile.getTiley();
+
+            // Iterate through all directions
+            for (int[] dir : directions) {
+                int newX = tilex + dir[0];
+                int newY = tiley + dir[1];
+
+                // Check if the new coordinates are within the board bounds
+                if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
+                    Tile tile = gameState.getBoard().getTile(newX, newY);
+
+                    // Check if the tile is empty (no unit on it)
+                    if (gameState.getBoard().getUnitOnTile(tile) == null) {
+                        // Highlight the tile
+                        BasicCommands.drawTile(out, tile, 1); // Highlight with mode = 1
+                        gameState.addHighlightedTile(tile); // Track highlighted tiles
+                    }
+                }
+            }
+        }
+    }
+
 }
+		
+		
+
+ 
+	
+
+		
