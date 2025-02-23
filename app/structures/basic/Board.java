@@ -3,7 +3,6 @@ package structures.basic;
 import akka.actor.ActorRef;
 import commands.BasicCommands;
 import utils.BasicObjectBuilders;
-import utils.StaticConfFiles;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,7 +79,10 @@ public class Board {
     public Map<Tile, Unit> getUnitMap() {
         return unitMap;
     }
-
+    public boolean isTileOccupied(Tile clickedTile) {
+        // Returns true if there is a unit on the tile; otherwise, false.
+        return getUnitOnTile(clickedTile) != null;
+    }
     public Tile getTile(int x, int y) {
         return tiles[x][y]; // Retrieve a specific tile
     }

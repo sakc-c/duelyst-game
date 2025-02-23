@@ -2,8 +2,6 @@ package structures.basic;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import structures.HumanPlayer;
-import structures.GameState;
 
 /**
  * This is a representation of a Unit on the game board.
@@ -18,6 +16,15 @@ import structures.GameState;
  *
  */
 public class Unit {
+	private int playerId; // or a String, depending on how you identify players
+
+	public int getPlayerId() {
+		return playerId;
+	}
+
+	public void setPlayerId(int playerId) {
+		this.playerId = playerId;
+	}
 
 	@JsonIgnore
 	protected static ObjectMapper mapper = new ObjectMapper(); // Jackson Java Object Serializer, is used to read java objects from a file
@@ -36,7 +43,6 @@ public class Unit {
 	private int attackPower;
 	private boolean isMoved;
 	private boolean isAttacked;
-	private int playerId;
 	
 	public Unit() {}
 	
@@ -176,15 +182,4 @@ public class Unit {
 	public void setHasMoved(boolean b) {
 		isMoved = b;
 	}
-	
-//	public int getPlayerId() {
-//        return playerId;
-//    }
-//
-//    public void setPlayerId(int playerId) {
-//        this.playerId = playerId;
-//    }
-    
-   
-
 }
