@@ -143,7 +143,15 @@ public class GameState {
         }
         highlightedTiles.clear(); // Clear the set of highlighted tiles
     }
-    
-    
 
+
+    public List<Tile> getTilesOccupiedByCurrentPlayer() {
+        List<Tile> occupiedTiles = new ArrayList<>();
+        for (Map.Entry<Tile, Unit> entry : board.getUnitMap().entrySet()) {
+            if (entry.getValue().getOwner() == getCurrentPlayer()) {
+                occupiedTiles.add(entry.getKey());
+            }
+        }
+        return occupiedTiles;
+    }
 }

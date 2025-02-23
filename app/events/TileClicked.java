@@ -49,12 +49,13 @@ public class TileClicked implements EventProcessor{
 
 		
 		// check if source tile is clicked again - remove highlight
-		if (gameState.getSourceTile() != null &&
-				gameState.getSourceTile().equals(clickedTile)) {
+		if (gameState.getSourceTile() != null && gameState.getSourceTile().equals(clickedTile)) {
 			gameState.clearAllHighlights(out);
 			gameState.setSourceTile(null); // Reset the source tile
 			gameState.setSelectedUnit(null); //Reset the selected unit
-		} //if tile is selected for movement or attack
+		}
+
+		//if tile is selected for movement or attack
 		else if (gameState.getSelectedUnit() != null) {
 			//selected for attack
 			//if(unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()){
@@ -64,13 +65,14 @@ public class TileClicked implements EventProcessor{
 
 			if (gameState.isHighlightedTile(clickedTile) && !gameState.getSelectedUnit().hasMoved()) {
 				gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), clickedTile);
-				// Update the unit's position using setPositionByTile
-			    gameState.getSelectedUnit().setPositionByTile(clickedTile);
+//				Update the unit's position using setPositionByTile
+//			    gameState.getSelectedUnit().setPositionByTile(clickedTile);
 				gameState.clearAllHighlights(out);
 				gameState.setSourceTile(null);
 				gameState.setSelectedUnit(null);
-			} else {
-				//clicked on a non-highlighted tile, reset selection & no movement (should we do any notification?)
+			}
+			//clicked on a non-highlighted tile, reset selection & no movement (should we do any notification?)
+			else {
 				gameState.clearAllHighlights(out);
 				gameState.setSourceTile(null);
 				gameState.setSelectedUnit(null);
@@ -126,7 +128,8 @@ public class TileClicked implements EventProcessor{
         Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
         newUnit.setOwner(gameState.getCurrentPlayer());
         gameState.getBoard().placeUnitOnTile(newUnit, tile);
-        BasicCommands.drawUnit(out, newUnit, tile);
+        //BasicCommands.drawUnit(out, newUnit, tile); //placeUnitOnTile already has draw, this was re-drawing
+		//also after the card is used to summon, it needs to be removed from hand - I would say use the playCard method in Human and add summon logic to there so can just directly call that above.
     }
 
 	private void highlightValidTiles(int tileX, int tileY, GameState gameState, ActorRef out) {
