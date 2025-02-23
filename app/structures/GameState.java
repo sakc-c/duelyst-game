@@ -26,7 +26,7 @@ public class GameState {
     private Tile sourceTile; // Track the source tile for highlighting
     private Unit selectedUnit;
     private Card selectedCard;
-    private int nextUnitId = 1; 
+    private int nextUnitId = 2;
     
 
     public GameState() {

@@ -42,8 +42,8 @@ public class Board {
 
 
     public void placeUnitOnTile(Unit unit, Tile tile) {
-    	
-    	
+
+
         // Remove the unit from its current tile (if any)
        if (unitMap.containsValue(unit)) {
             Tile currentTile = getTileForUnit(unit);
@@ -57,6 +57,7 @@ public class Board {
                     System.out.println("Error");
                 }
                 unitMap.put(tile,unit);
+                unit.setPositionByTile(tile);
                 unit.setHasMoved(true);
                 return;
             }
@@ -65,7 +66,7 @@ public class Board {
         unit.setPositionByTile(tile);
         unitMap.put(tile, unit);
         BasicCommands.drawUnit(out, unit, tile);
-    } 
+    }
 
     public Unit getUnitOnTile(Tile tile) {
         return unitMap.get(tile); // Returns the unit if one is on this tile, otherwise null

@@ -44,47 +44,40 @@ public class HumanPlayer extends Player {
     }
 
     public void playCard(Card card, ActorRef out) {
-        if (hand.contains(card) && getMana() >= card.getManacost()) {
-            setMana(getMana() - card.getManacost()); // Deduct mana
+        if (hand.contains(card)) { //&& getMana() >= card.getManacost() once we set mana cost for cards?
+            //setMana(getMana() - card.getManacost()); // Deduct mana
             int removedIndex = hand.indexOf(card); // Get card position
+
+            BasicCommands.deleteCard(out, removedIndex + 1); // Remove from UI
+
+            // Shift remaining cards left in UI
+            for (int i = removedIndex+1; i < hand.size(); i++) {
+                Card shiftedCard = hand.get(i);
+                BasicCommands.deleteCard(out, i + 1); // Clear old position before redrawing
+                BasicCommands.drawCard(out, shiftedCard, i, 0); // Draw at new position
+            }
+
             hand.remove(card); // Remove from hand
 
-            BasicCommands.deleteCard(out, removedIndex + 1); //remove from UI
-
-            try {
-                Thread.sleep(1000); // Wait for a second to show the card removal
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            // Shift any cards which come after deleted card to the left
-            for (int i = removedIndex; i < hand.size(); i++) {
-                Card shiftedCard = hand.get(i);
-                // Redraw the shifted card at its new position
-                BasicCommands.drawCard(out, shiftedCard, i + 1, 0); // Redraw card at new position
-            }
-
-            //delete the last card after shifting
-            BasicCommands.deleteCard(out, hand.size());
-
+            // Ensure last UI slot is cleared after shifting
+            BasicCommands.deleteCard(out, hand.size() + 1);
         }
-
-        // Additional logic for placing the card on the board
     }
+
 
     public void attack(Unit target) {
         // Implement attack selection
     }
 
     public void drawCard(ActorRef out) {
-        if (hand.size() < 6) { // Check if there's space in hand
-            if (!deck.isEmpty()) { // Check if deck is not empty
-                Card newCard = deck.remove(0);  // Get and remove the first card from the deck
-                hand.add(newCard); // Add card to the player's hand
+    if (hand.size() < 6) { // Check if there's space in hand
+        if (!deck.isEmpty()) { // Check if deck is not empty
+            Card newCard = deck.remove(0);  // Get and remove the first card from the deck
+            hand.add(newCard); // Add card to the player's hand
 
-                int nextIndex = hand.indexOf(newCard) + 1; // Find next available index
-                BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
-            }
+            int nextIndex = hand.size(); // Correct UI index
+            BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
         }
     }
+}
 }
