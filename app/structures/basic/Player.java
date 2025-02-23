@@ -11,7 +11,7 @@ public class Player {
 
 	int health;
 	int mana;
-	private int id;
+//	private int id;
 	
 	public Player() {
 		super();
@@ -36,13 +36,13 @@ public class Player {
 		this.mana = mana;
 	}
 	
-	public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
+//	public int getId() {
+//        return id;
+//    }
+//
+//    public void setId(int id) {
+//        this.id = id;
+//    }
   
     
     
