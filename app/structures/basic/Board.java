@@ -72,7 +72,7 @@ public class Board {
         return unitMap.get(tile); // Returns the unit if one is on this tile, otherwise null
     }
 
-    public void removeUnitFromTile(Tile tile) {
+    public void removeUnitFromTile(Tile tile, ActorRef out) {
         Unit unit = unitMap.get(tile); // Returns the unit to remove
         BasicCommands.deleteUnit(out, unit);
         unitMap.remove(tile); // Remove from map
@@ -85,6 +85,7 @@ public class Board {
     public Tile getTile(int x, int y) {
         return tiles[x][y]; // Retrieve a specific tile
     }
+    
     
     
     

@@ -27,7 +27,7 @@ import structures.basic.Unit;
  * @author Dr. Richard McCreadie
  *
  */
-public class CardClicked implements EventProcessor{
+public class CardClicked implements EventProcessor {
 
 	@Override
 	public void processEvent(ActorRef out, GameState gameState, JsonNode message) {
@@ -57,7 +57,7 @@ public class CardClicked implements EventProcessor{
             gameState.setSelectedCard(clickedCard);
             
          // Check if the clicked card is a creature card
-            if (clickedCard.isCreature()) {
+            if (clickedCard.isCreature() && gameState.getCurrentPlayer().getMana()>=clickedCard.getManacost()) {
                 // Highlight valid tiles for summoning
             	highlightValidSummonTiles(out, gameState, message);
             } else {
