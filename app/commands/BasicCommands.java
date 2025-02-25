@@ -40,7 +40,19 @@ public class BasicCommands {
 	 * @param mode
 	 */
 	@SuppressWarnings({"deprecation"})
-
+	public static void drawTile(ActorRef out, Tile tile, int mode) {
+		try {
+			ObjectNode returnMessage = Json.newObject();
+			returnMessage.put("messagetype", "drawTile");
+			returnMessage.put("tile", mapper.readTree(mapper.writeValueAsString(tile)));
+			returnMessage.put("mode", mode);
+			if (altTell!=null) altTell.tell(returnMessage);
+			else out.tell(returnMessage, out);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * drawUnit will draw the sprite for a unit (a picture of that unit with its attack and health values) on the board. 
 	 * This command takes as input a target Tile (a ‘square’ of the main game grid) to place the unit’s sprite upon, 
