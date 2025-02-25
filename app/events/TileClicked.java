@@ -42,6 +42,7 @@ public class TileClicked implements EventProcessor{
 		BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.attack);
 
 		// Apply damage
+
 		opponent.takeDamage(attacker.getAttackPower());
 		BasicCommands.setUnitHealth(out, opponent, opponent.getCurrentHealth());
 		gameState.clearAllHighlights(out);
@@ -90,8 +91,6 @@ public class TileClicked implements EventProcessor{
 						return;
 					}
 
-
-
 					//Find closet empty adjacent tile
 					Tile adjacentTile = null;
 					int[][] directions = {
@@ -113,13 +112,6 @@ public class TileClicked implements EventProcessor{
 								adjacentTile = gameState.getBoard().getTile(newX, newY);
 								break;
 							}
-//							// Check if the adjacent tile is empty
-//							if (gameState.getBoard().getUnitOnTile(adjacentTile) == null) {
-//								//Move the selected unit to the adjacent tile
-//								adjacentTile = potentialTile;
-//								break;
-//
-//							}
 						}
 					}
 				gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), adjacentTile);
