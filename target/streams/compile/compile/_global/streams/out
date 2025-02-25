@@ -1,3 +1,13 @@
-[0m[[0m[33mwarn[0m] [0m[0m/Users/sakshijashnani/Desktop/SD Team Project/ITSD-DT2023-24-Template/app/commands/BasicCommands.java:111:1: put(java.lang.String,com.fasterxml.jackson.databind.JsonNode) in com.fasterxml.jackson.databind.node.ObjectNode has been deprecated[0m
-[0m[[0m[33mwarn[0m] [0m[0mreturnMessage.put[0m
-[0m[[0m[31merror[0m] [0m[0m/Users/sakshijashnani/Desktop/SD Team Project/ITSD-DT2023-24-Template/app/commands/BasicCommands.java: warnings found and -Werror specified[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:167:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mprivate [0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:173:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:175:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:178:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:180:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:183:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:185:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:186:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:190:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:191:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:197:1: class, interface, or enum expected[0m
+[0m[[0m[31merror[0m] [0m[0mC:\Users\rache\Documents\duelystgame\app\events\TileClicked.java:199:1: class, interface, or enum expected[0m

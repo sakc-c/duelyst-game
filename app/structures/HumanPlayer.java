@@ -44,9 +44,13 @@ public class HumanPlayer extends Player {
     }
 
     public void playCard(Card card, ActorRef out) {
-        if (hand.contains(card)) { //&& getMana() >= card.getManacost() once we set mana cost for cards?
+        if (hand.contains(card) && getMana() >= card.getManacost()){//once we set mana cost for cards?
+        int removedIndex = hand.indexOf(card); // Get card position
+
+         // deduct mana
+            setMana(getMana() - card.getManacost());
+            BasicCommands.setPlayer1Mana(out,this); //update UI
             //setMana(getMana() - card.getManacost()); // Deduct mana
-            int removedIndex = hand.indexOf(card); // Get card position
 
             BasicCommands.deleteCard(out, removedIndex + 1); // Remove from UI
 

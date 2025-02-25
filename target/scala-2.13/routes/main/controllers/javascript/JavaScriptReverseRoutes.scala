@@ -1,6 +1,6 @@
 // @GENERATOR:play-routes-compiler
-// @SOURCE:/Users/sakshijashnani/Desktop/SD Team Project/ITSD-DT2023-24-Template/conf/routes
-// @DATE:Fri Feb 07 21:31:19 GMT 2025
+// @SOURCE:C:/Users/rache/Documents/duelystgame/conf/routes
+// @DATE:Mon Feb 24 21:02:02 GMT 2025
 
 import play.api.routing.JavaScriptReverseRoute
 
