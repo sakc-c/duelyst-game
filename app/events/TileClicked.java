@@ -5,13 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
-import structures.AIController;
 import structures.GameState;
 import structures.basic.Card;
 import structures.basic.Tile;
 import structures.basic.Unit;
-import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;
+import structures.HumanPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,10 +69,20 @@ public class TileClicked implements EventProcessor{
 		Card selectedCard = gameState.getSelectedCard();
 
 
-
-
+		// Check if a card is selected
+		if (selectedCard != null) {
+			// If the selected card is a creature card
+			if (selectedCard.isCreature()) {
+				handleCreatureCardClick(out, gameState, clickedTile, unitOnTile, selectedCard);
+			}
+			// If the selected card is a spell card
+			else {
+				handleSpellCardClick(out, gameState, clickedTile, unitOnTile);
+			}
+		}
+		
 		// check if source tile is clicked again - remove highlight
-		if (gameState.getSourceTile() != null && gameState.getSourceTile().equals(clickedTile)) {
+		else if (gameState.getSourceTile() != null && gameState.getSourceTile().equals(clickedTile)) {
 			gameState.clearAllHighlights(out);
 			gameState.setSourceTile(null); // Reset the source tile
 			gameState.setSelectedUnit(null); //Reset the selected unit
@@ -140,9 +149,9 @@ public class TileClicked implements EventProcessor{
 			}
 
 			if (gameState.isHighlightedTile(clickedTile) && !gameState.getSelectedUnit().hasMoved()) {
-				gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), clickedTile);
 //				Update the unit's position using setPositionByTile
 //			    gameState.getSelectedUnit().setPositionByTile(clickedTile);
+				gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), clickedTile);
 				gameState.clearAllHighlights(out);
 				gameState.setSourceTile(null);
 				gameState.setSelectedUnit(null);
@@ -157,31 +166,27 @@ public class TileClicked implements EventProcessor{
 		//if both conditions above are false - source tile & selected unit are null. Action: valid tiles to be highlighted
 		else if (unitOnTile != null && unitOnTile.getOwner() == gameState.getCurrentPlayer()) {
 			if (!unitOnTile.hasMoved()) {
+				gameState.clearAllHighlights(out);
 				highlightValidTiles(tilex, tiley, gameState, out);
 				gameState.setSourceTile(clickedTile); // Set the source tile
 				gameState.setSelectedUnit(unitOnTile); // Set the selected unit
 			}
 		}
-		
-		// Check if a card is selected
-        if (selectedCard != null) {
-            // If the selected card is a creature card
-            if (selectedCard.isCreature()) {
-                handleCreatureCardClick(out, gameState, clickedTile, unitOnTile);
-            }
-            // If the selected card is a spell card
-            else {
-                handleSpellCardClick(out, gameState, clickedTile, unitOnTile);
-            }
-        }
         
 	}
 	
-	private void handleCreatureCardClick(ActorRef out, GameState gameState, Tile clickedTile, Unit unitOnTile) {
+	private void handleCreatureCardClick(ActorRef out, GameState gameState, Tile clickedTile, Unit unitOnTile, Card selectedCard) {
         // Check if the clicked tile is valid for summoning
-        if (gameState.isHighlightedTile(clickedTile) && unitOnTile == null) {
-            // Summon the creature on the clicked tile
-            summonCreature(out, gameState, clickedTile);
+        if (gameState.isHighlightedTile(clickedTile)) {
+			// Summon the creature on the clicked tile
+			summonCreature(out, gameState, clickedTile);
+
+			// Get the current player
+			HumanPlayer currentPlayer = (HumanPlayer) gameState.getCurrentPlayer();
+
+			// Play the card (remove from hand and deduct mana)
+			currentPlayer.playCard(selectedCard, out);
+
             gameState.clearAllHighlights(out); // Clear highlights after summoning
             gameState.setSelectedCard(null); // Reset the selected card
         } else {
@@ -204,13 +209,11 @@ public class TileClicked implements EventProcessor{
         Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
         newUnit.setOwner(gameState.getCurrentPlayer());
         gameState.getBoard().placeUnitOnTile(newUnit, tile);
+		newUnit.setHasMoved(true);
         //BasicCommands.drawUnit(out, newUnit, tile); //placeUnitOnTile already has draw, this was re-drawing
-		//also after the card is used to summon, it needs to be removed from hand - I would say use the playCard method in Human and add summon logic to there so can just directly call that above.
     }
 
 	private void highlightValidTiles(int tileX, int tileY, GameState gameState, ActorRef out) {
-		// Clear previous highlights
-		gameState.clearAllHighlights(out);
 
 		// Define movement ranges
 		int[][] validDirections = {{-2, 0}, {-1, 0}, {1, 0},{2, 0}, {0, -2}, {0, 2},{0, -1}, {0,1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
@@ -246,10 +249,9 @@ public class TileClicked implements EventProcessor{
 
 	}
 
-	public boolean isAdjacentTile(Tile tile1, Tile tile2) {
-		int dx = Math.abs(tile1.getTilex() - tile2.getTilex());
-		int dy = Math.abs(tile1.getTiley() - tile2.getTiley());
-		return dx <= 1 && dy <= 1;
-	}
+	
+	
+	
+
 
 }
