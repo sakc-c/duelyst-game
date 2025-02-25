@@ -1,3 +1,10 @@
-[0m[[0m[33mwarn[0m] [0m[0m/Users/sakshijashnani/Desktop/SD Team Project/ITSD-DT2023-24-Template/app/commands/BasicCommands.java:111:1: put(java.lang.String,com.fasterxml.jackson.databind.JsonNode) in com.fasterxml.jackson.databind.node.ObjectNode has been deprecated[0m
-[0m[[0m[33mwarn[0m] [0m[0mreturnMessage.put[0m
-[0m[[0m[31merror[0m] [0m[0m/Users/sakshijashnani/Desktop/SD Team Project/ITSD-DT2023-24-Template/app/commands/BasicCommands.java: warnings found and -Werror specified[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/alaamabrouk/ITSD-TeamProject/app/events/TileClicked.java:44:1: method takeDamage in class structures.basic.Unit cannot be applied to given types;[0m
+[0m[[0m[31merror[0m] [0m[0m  required: int[0m
+[0m[[0m[31merror[0m] [0m[0m  found: int,akka.actor.ActorRef[0m
+[0m[[0m[31merror[0m] [0m[0m  reason: actual and formal argument lists differ in length[0m
+[0m[[0m[31merror[0m] [0m[0mopponent.takeDamage[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/alaamabrouk/ITSD-TeamProject/app/structures/AIController.java:76:1: method setPlayer2Health in class commands.BasicCommands cannot be applied to given types;[0m
+[0m[[0m[31merror[0m] [0m[0m  required: akka.actor.ActorRef,structures.basic.Player[0m
+[0m[[0m[31merror[0m] [0m[0m  found: akka.actor.ActorRef,structures.AIController,int[0m
+[0m[[0m[31merror[0m] [0m[0m  reason: actual and formal argument lists differ in length[0m
+[0m[[0m[31merror[0m] [0m[0mBasicCommands.setPlayer2Health[0m
