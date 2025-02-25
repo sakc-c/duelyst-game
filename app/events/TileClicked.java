@@ -71,18 +71,20 @@ public class TileClicked implements EventProcessor{
 		//if tile is selected for movement or attack
 		else if (gameState.getSelectedUnit() != null) {
 			//selected for attack
-			if(unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()){
-				Unit attackingUnit = gameState.getSelectedUnit(); //get the attacking unit
-				if (attackingUnit != null) {
-					int damage = attackingUnit.getAttackPower();
+			public boolean handleAttacks(GameState gameState, ActorRef out, Unit targetUnit){
+				if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
+					Unit attackingUnit = gameState.getSelectedUnit(); //get the attacking unit
+					if (attackingUnit != null) {
+						int damage = attackingUnit.getAttackPower();
 
-					unitOnTile.takeDamage(damage); //apply damage
+						unitOnTile.takeDamage(damage); //apply damage
 
-					if (unitOnTile != null) {
-						BasicCommands.setUnitHealth(out,unitOnTile, unitOnTile.getCurrentHealth());
+						if (unitOnTile != null) {
+							BasicCommands.setUnitHealth(out, unitOnTile, unitOnTile.getCurrentHealth());
+						}
 					}
-				}
 
+				}
 			}
 
 			if (gameState.isHighlightedTile(clickedTile) && !gameState.getSelectedUnit().hasMoved()) {
