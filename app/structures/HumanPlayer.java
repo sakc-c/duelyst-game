@@ -44,9 +44,13 @@ public class HumanPlayer extends Player {
     }
 
     public void playCard(Card card, ActorRef out) {
-        if (hand.contains(card)) { //&& getMana() >= card.getManacost() once we set mana cost for cards?
-            //setMana(getMana() - card.getManacost()); // Deduct mana
+        if (hand.contains(card)) { // && getMana() >= card.getManacost()){//once we set mana cost for cards?
             int removedIndex = hand.indexOf(card); // Get card position
+
+//         // deduct mana
+//            setMana(getMana() - card.getManacost());
+//            BasicCommands.setPlayer1Mana(out,this); //update UI
+            //setMana(getMana() - card.getManacost()); // Deduct mana
 
             BasicCommands.deleteCard(out, removedIndex + 1); // Remove from UI
 
@@ -61,8 +65,33 @@ public class HumanPlayer extends Player {
 
             // Ensure last UI slot is cleared after shifting
             BasicCommands.deleteCard(out, hand.size() + 1);
+
+            // deduct mana
+            setMana(getMana() - card.getManacost());
+            BasicCommands.setPlayer1Mana(out,this); //update UI
+            setMana(getMana() - card.getManacost()); // Deduct mana
         }
     }
+//    public void playCard(Card card, ActorRef out) {
+//        if (hand.contains(card)) { //&& getMana() >= card.getManacost() once we set mana cost for cards?
+//            //setMana(getMana() - card.getManacost()); // Deduct mana
+//            int removedIndex = hand.indexOf(card); // Get card position
+//
+//            BasicCommands.deleteCard(out, removedIndex + 1); // Remove from UI
+//
+//            // Shift remaining cards left in UI
+//            for (int i = removedIndex+1; i < hand.size(); i++) {
+//                Card shiftedCard = hand.get(i);
+//                BasicCommands.deleteCard(out, i + 1); // Clear old position before redrawing
+//                BasicCommands.drawCard(out, shiftedCard, i, 0); // Draw at new position
+//            }
+//
+//            hand.remove(card); // Remove from hand
+//
+//            // Ensure last UI slot is cleared after shifting
+//            BasicCommands.deleteCard(out, hand.size() + 1);
+//        }
+//    }
 
 
     public void attack(Unit target) {

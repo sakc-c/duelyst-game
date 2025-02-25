@@ -249,6 +249,21 @@ public class TileClicked implements EventProcessor{
 
 	}
 
+	public boolean handleAttacks(GameState gameState, ActorRef out, Unit targetUnit){
+		if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
+			Unit attackingUnit = gameState.getSelectedUnit(); //get the attacking unit
+			if (attackingUnit != null) {
+				int damage = attackingUnit.getAttackPower();
+
+				unitOnTile.takeDamage(damage); //apply damage
+
+				if (unitOnTile != null) {
+					BasicCommands.setUnitHealth(out, unitOnTile, unitOnTile.getCurrentHealth());
+				}
+			}
+
+		}
+	}
 	
 	
 	
