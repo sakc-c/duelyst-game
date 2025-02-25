@@ -9,6 +9,7 @@ import structures.GameState;
 import structures.basic.Card;
 import structures.basic.Tile;
 import structures.basic.Unit;
+import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;
 import structures.HumanPlayer;
 
@@ -36,144 +37,70 @@ import static java.lang.Thread.sleep;
 // Was trying to build logic and it being functional first.
 public class TileClicked implements EventProcessor{
 
-	//helper method to handle attack
-	public void handleAttack(ActorRef out, GameState gameState, Unit attacker, Unit opponent) {
-		BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.attack);
-
-		// Apply damage
-
-		opponent.takeDamage(attacker.getAttackPower());
-		BasicCommands.setUnitHealth(out, opponent, opponent.getCurrentHealth());
-		gameState.clearAllHighlights(out);
-		/* to remove the opponent unit if helath==0
-		if (opponent.getCurrentHealth() == 0) {
-			Tile opponentTile = gameState.getBoard().getTileForUnit(opponent);
-			gameState.getBoard().removeUnitFromTile(opponentTile);
-			BasicCommands.deleteUnit(out, opponent);
-		}*/
-		attacker.setHasMoved(true);
-	}
-
+	
 
 
 
 
 	@Override
 	public void processEvent(ActorRef out, GameState gameState, JsonNode message) {
-
 		int tilex = message.get("tilex").asInt();
-		int tiley = message.get("tiley").asInt();
+	    int tiley = message.get("tiley").asInt();
 
-		Tile clickedTile = gameState.getBoard().getTile(tilex, tiley);
-		Unit unitOnTile = gameState.getBoard().getUnitOnTile(clickedTile);
-		Card selectedCard = gameState.getSelectedCard();
+	    Tile clickedTile = gameState.getBoard().getTile(tilex, tiley);
+	    Unit unitOnTile = gameState.getBoard().getUnitOnTile(clickedTile);
+	    Card selectedCard = gameState.getSelectedCard();
 
+	    // Check if a card is selected
+	    if (selectedCard != null) {
+	        if (selectedCard.isCreature()) {
+	            handleCreatureCardClick(out, gameState, clickedTile, unitOnTile, selectedCard);
+	        } else {
+	            handleSpellCardClick(out, gameState, clickedTile, unitOnTile);
+	        }
+	    }
 
-		// Check if a card is selected
-		if (selectedCard != null) {
-			// If the selected card is a creature card
-			if (selectedCard.isCreature()) {
-				handleCreatureCardClick(out, gameState, clickedTile, unitOnTile, selectedCard);
-			}
-			// If the selected card is a spell card
-			else {
-				handleSpellCardClick(out, gameState, clickedTile, unitOnTile);
-			}
-		}
-		
-		// check if source tile is clicked again - remove highlight
-		else if (gameState.getSourceTile() != null && gameState.getSourceTile().equals(clickedTile)) {
-			gameState.clearAllHighlights(out);
-			gameState.setSourceTile(null); // Reset the source tile
-			gameState.setSelectedUnit(null); //Reset the selected unit
-		}
+	    // Check if source tile is clicked again - remove highlight
+	    else if (gameState.getSourceTile() != null && gameState.getSourceTile().equals(clickedTile)) {
+	        gameState.clearAllHighlights(out);
+	        gameState.setSourceTile(null);
+	        gameState.setSelectedUnit(null);
+	    }
 
-		//if tile is selected for movement or attack
-		else if (gameState.getSelectedUnit() != null) {
-			//selected for attack
-			if(unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()){
-					Tile opponentTile = gameState.getBoard().getTileForUnit(unitOnTile);
+	    // If tile is selected for movement or attack
+	    else if (gameState.getSelectedUnit() != null) {
+	        // Selected for attack
+	        if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
+	            handleAttack(out, gameState, gameState.getSelectedUnit(), unitOnTile);
+	        }
 
-					//if source tile is already adjacent, attack directly
-					if (isAdjacentTile(gameState.getSourceTile(), opponentTile)) {
-						handleAttack(out, gameState, gameState.getSelectedUnit(), unitOnTile);
-						return;
-					}
+	        // Selected for movement
+	        else if (gameState.isHighlightedTile(clickedTile) && !gameState.getSelectedUnit().hasMoved()) {
+	            gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), clickedTile);
+	            gameState.clearAllHighlights(out);
+	            gameState.setSourceTile(null);
+	            gameState.setSelectedUnit(null);
+	        }
 
-					//Find closet empty adjacent tile
-					Tile adjacentTile = null;
-					int[][] directions = {
-							{-1, 0}, {1, 0}, // Left, Right
-							{0, -1}, {0, 1}, // Up, Down
-							{-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
-					};
+	        // Clicked on a non-highlighted tile, reset selection
+	        else {
+	            gameState.clearAllHighlights(out);
+	            gameState.setSourceTile(null);
+	            gameState.setSelectedUnit(null);
+	        }
+	    }
 
-					// Loop through adjacent tiles
-					for (int[] dir : directions) {
-						int newX = opponentTile.getTilex() + dir[0];
-						int newY = opponentTile.getTiley() + dir[1];
-
-						// Check if tile is within board limits
-						if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
-							Tile potentialTile = gameState.getBoard().getTile(newX, newY);
-
-							if (gameState.isHighlightedTile(potentialTile)) {
-								adjacentTile = gameState.getBoard().getTile(newX, newY);
-								break;
-							}
-						}
-					}
-				gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), adjacentTile);
-				try{Thread.sleep(600);}
-				catch (InterruptedException e){
-								System.out.println("Error in movement delay");
-							}
-				handleAttack(out, gameState, gameState.getSelectedUnit(), unitOnTile);
-
-//					// Move unit to adjacent tile before attacking
-//					if (adjacentTile != null) {
-//						gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), adjacentTile);
-//
-//						// Wait for movement to complete before attacking
-//							try{
-//								Thread.sleep(600);
-//							} catch (InterruptedException e){
-//								System.out.println("Error in movement delay");
-//							}
-//							//Attack after movement
-//						handleAttack(out, gameState, gameState.getSelectedUnit(), unitOnTile);
-//
-//
-//					}
-
-			}
-
-			if (gameState.isHighlightedTile(clickedTile) && !gameState.getSelectedUnit().hasMoved()) {
-//				Update the unit's position using setPositionByTile
-//			    gameState.getSelectedUnit().setPositionByTile(clickedTile);
-				gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), clickedTile);
-				gameState.clearAllHighlights(out);
-				gameState.setSourceTile(null);
-				gameState.setSelectedUnit(null);
-			}
-			//clicked on a non-highlighted tile, reset selection & no movement (should we do any notification?)
-			else {
-				gameState.clearAllHighlights(out);
-				gameState.setSourceTile(null);
-				gameState.setSelectedUnit(null);
-			}
-		}
-		//if both conditions above are false - source tile & selected unit are null. Action: valid tiles to be highlighted
-		else if (unitOnTile != null && unitOnTile.getOwner() == gameState.getCurrentPlayer()) {
-			if (!unitOnTile.hasMoved()) {
-				gameState.clearAllHighlights(out);
-				highlightValidTiles(tilex, tiley, gameState, out);
-				gameState.setSourceTile(clickedTile); // Set the source tile
-				gameState.setSelectedUnit(unitOnTile); // Set the selected unit
-			}
-		}
-        
+	    // If no card or unit is selected, highlight valid tiles for the current player's unit
+	    else if (unitOnTile != null && unitOnTile.getOwner() == gameState.getCurrentPlayer()) {
+	        if (!unitOnTile.hasMoved()) {
+	            gameState.clearAllHighlights(out);
+	            highlightValidTiles(tilex, tiley, gameState, out);
+	            gameState.setSourceTile(clickedTile);
+	            gameState.setSelectedUnit(unitOnTile);
+	        }
+	    }
 	}
+	
 	
 	private void handleCreatureCardClick(ActorRef out, GameState gameState, Tile clickedTile, Unit unitOnTile, Card selectedCard) {
         // Check if the clicked tile is valid for summoning
@@ -248,23 +175,106 @@ public class TileClicked implements EventProcessor{
 		}
 
 	}
-
-	public boolean handleAttacks(GameState gameState, ActorRef out, Unit targetUnit){
-		if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
-			Unit attackingUnit = gameState.getSelectedUnit(); //get the attacking unit
-			if (attackingUnit != null) {
-				int damage = attackingUnit.getAttackPower();
-
-				unitOnTile.takeDamage(damage); //apply damage
-
-				if (unitOnTile != null) {
-					BasicCommands.setUnitHealth(out, unitOnTile, unitOnTile.getCurrentHealth());
-				}
-			}
-
-		}
+	
+	private boolean isAdjacentTile(Tile tile1, Tile tile2) {
+	    int dx = Math.abs(tile1.getTilex() - tile2.getTilex());
+	    int dy = Math.abs(tile1.getTiley() - tile2.getTiley());
+	    return dx <= 1 && dy <= 1; // Adjacent if within 1 tile in any direction
 	}
 	
+	private Tile findEmptyAdjacentTile(GameState gameState, Tile targetTile) {
+	    int[][] directions = {
+	        {-1, 0}, {1, 0}, // Left, Right
+	        {0, -1}, {0, 1}, // Up, Down
+	        {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
+	    };
+
+	    for (int[] dir : directions) {
+	        int newX = targetTile.getTilex() + dir[0];
+	        int newY = targetTile.getTiley() + dir[1];
+
+	        // Check if the new coordinates are within the board bounds
+	        if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
+	            Tile potentialTile = gameState.getBoard().getTile(newX, newY);
+	            if (gameState.isHighlightedTile(potentialTile)) {
+	            	return potentialTile;
+	            	
+	            }
+	        }
+	    }
+	    return null; // No empty adjacent tile found
+	}
+	
+	private void handleAttack(ActorRef out, GameState gameState, Unit attacker, Unit target) {
+	    // Check if the attacker and target are valid
+	    if (attacker == null || target == null) {
+	        
+	        return;
+	    }
+
+	    // Get the tiles for the attacker and target
+	    Tile attackerTile = gameState.getBoard().getTileForUnit(attacker);
+	    Tile targetTile = gameState.getBoard().getTileForUnit(target);
+
+	    if (attackerTile == null || targetTile == null) {
+	       
+	        return;
+	    }
+
+	    // Check if the attacker is adjacent to the target
+	    if (!isAdjacentTile(attackerTile, targetTile)) {
+	        // Move to an adjacent tile
+	        Tile adjacentTile = findEmptyAdjacentTile(gameState, targetTile);
+	        if (adjacentTile == null) {
+	            
+	            return;
+	        }
+
+	        // Move the attacker to the adjacent tile
+	        gameState.getBoard().placeUnitOnTile(attacker, adjacentTile);
+	        //BasicCommands.drawUnit(out, attacker, adjacentTile); // Update UI
+
+	        // Wait for movement to complete (optional)
+	        try {
+	            Thread.sleep(600); // Simulate movement delay
+	        } catch (InterruptedException e) {
+	            
+	        }
+	    }
+
+	    // Perform the attack
+	    BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.attack);
+	    target.takeDamage(attacker.getAttackPower());
+	    BasicCommands.setUnitHealth(out, target, target.getCurrentHealth());
+
+		/*
+		 * // Check if the target is defeated if (target.getCurrentHealth() <= 0) {
+		 * gameState.getBoard().removeUnit(target); // Remove from the board
+		 * BasicCommands.deleteUnit(out, target); // Remove from the UI
+		 * 
+		 * }
+		 */
+
+	    // Mark the attacker as having moved
+	    attacker.setHasMoved(true);
+	    gameState.clearAllHighlights(out); // Clear highlights after the attack
+	}
+
+
+	/*
+	 * public boolean handleAttacks(GameState gameState, ActorRef out, Unit
+	 * targetUnit){ if (unitOnTile != null && unitOnTile.getOwner() ==
+	 * gameState.getOpponentPlayer()) { Unit attackingUnit =
+	 * gameState.getSelectedUnit(); //get the attacking unit if (attackingUnit !=
+	 * null) { int damage = attackingUnit.getAttackPower();
+	 * 
+	 * unitOnTile.takeDamage(damage); //apply damage
+	 * 
+	 * if (unitOnTile != null) { BasicCommands.setUnitHealth(out, unitOnTile,
+	 * unitOnTile.getCurrentHealth()); } }
+	 * 
+	 * } }
+	 */
 	
 	
 
