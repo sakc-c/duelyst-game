@@ -65,14 +65,27 @@ public class TileClicked implements EventProcessor{
 			gameState.setSourceTile(null); // Reset the source tile
 			gameState.setSelectedUnit(null); //Reset the selected unit
 		}
-
+// @Alaa: Implement the logic for handling an attack. When the player selects an opponent's unit (red tile),
+		// the unit should not move to the opponent's tile. Instead, it should move to the adjacent tile and then perform an attack.
+		//}
 		//if tile is selected for movement or attack
 		else if (gameState.getSelectedUnit() != null) {
 			//selected for attack
-			//if(unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()){
-				// @Alaa: Implement the logic for handling an attack. When the player selects an opponent's unit (red tile),
-				// the unit should not move to the opponent's tile. Instead, it should move to the adjacent tile and then perform an attack.
-			//}
+			public boolean handleAttacks(GameState gameState, ActorRef out, Unit targetUnit){
+				if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
+					Unit attackingUnit = gameState.getSelectedUnit(); //get the attacking unit
+					if (attackingUnit != null) {
+						int damage = attackingUnit.getAttackPower();
+
+						unitOnTile.takeDamage(damage); //apply damage
+
+						if (unitOnTile != null) {
+							BasicCommands.setUnitHealth(out, unitOnTile, unitOnTile.getCurrentHealth());
+						}
+					}
+
+				}
+			}
 
 			if (gameState.isHighlightedTile(clickedTile) && !gameState.getSelectedUnit().hasMoved()) {
 //				Update the unit's position using setPositionByTile
@@ -132,12 +145,25 @@ public class TileClicked implements EventProcessor{
 	private void summonCreature(ActorRef out, GameState gameState, Tile tile) {
         // Implement logic to summon the creature on the tile
         Card selectedCard = gameState.getSelectedCard();
+		HumanPlayer currentPlayer = (HumanPlayer) gameState.getCurrentPlayer();
+        // check if player has mana
+		if (currentPlayer.getMana() >= selectedCard.getManacost()){
+			// deduct mana
+			currentPlayer.setMana(currentPlayer.getMana() - selectedCard.getManacost());
+			BasicCommands.setPlayer1Mana(out,currentPlayer);
+
         Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
         newUnit.setOwner(gameState.getCurrentPlayer());
         gameState.getBoard().placeUnitOnTile(newUnit, tile);
 		newUnit.setHasMoved(true);
         //BasicCommands.drawUnit(out, newUnit, tile); //placeUnitOnTile already has draw, this was re-drawing
     }
+
+		   //remove card from Player's hand
+		   currentPlayer.playCard(selectedCard, out);
+		   gameState.setSelectedCard(null);
+
+	   }
 
 	private void highlightValidTiles(int tileX, int tileY, GameState gameState, ActorRef out) {
 
