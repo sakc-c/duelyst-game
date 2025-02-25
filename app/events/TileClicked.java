@@ -162,7 +162,7 @@ public class TileClicked implements EventProcessor{
 		   gameState.setSelectedCard(null);
 
 	   }
-   }
+
 	private void highlightValidTiles(int tileX, int tileY, GameState gameState, ActorRef out) {
 
 		// Define movement ranges
