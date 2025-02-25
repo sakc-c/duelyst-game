@@ -42,8 +42,8 @@ public class GameState {
    public void initializePlayers(HumanPlayer player1, AIController player2) {
         this.player1 = player1;
         this.player2 = player2;
-        this.player1.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.humanAvatar, 1, Unit.class));
-        this.player2.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, 2, Unit.class));
+        this.player1.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.humanAvatar, getNextUnitId(), Unit.class));
+        this.player2.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, getNextUnitId(), Unit.class));
     } 
 
    public void setBoard(Board board) {

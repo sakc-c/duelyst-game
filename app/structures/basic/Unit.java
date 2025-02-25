@@ -160,7 +160,8 @@ public class Unit {
 
 	public void takeDamage(int damage) {
 		currentHealth -= damage;
-		if (currentHealth < 0) currentHealth = 0;
+		if (currentHealth < 0)
+			currentHealth = 0;
 		//remove unit the board and display notification
 	}
 
