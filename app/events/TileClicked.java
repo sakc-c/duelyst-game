@@ -36,6 +36,28 @@ import static java.lang.Thread.sleep;
 // Was trying to build logic and it being functional first.
 public class TileClicked implements EventProcessor{
 
+	//helper method to handle attack
+	public void handleAttack(ActorRef out, GameState gameState, Unit attacker, Unit opponent) {
+		BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.attack);
+
+		// Apply damage
+
+		opponent.takeDamage(attacker.getAttackPower());
+		BasicCommands.setUnitHealth(out, opponent, opponent.getCurrentHealth());
+		gameState.clearAllHighlights(out);
+		/* to remove the opponent unit if helath==0
+		if (opponent.getCurrentHealth() == 0) {
+			Tile opponentTile = gameState.getBoard().getTileForUnit(opponent);
+			gameState.getBoard().removeUnitFromTile(opponentTile);
+			BasicCommands.deleteUnit(out, opponent);
+		}*/
+		attacker.setHasMoved(true);
+	}
+
+
+
+
+
 	@Override
 	public void processEvent(ActorRef out, GameState gameState, JsonNode message) {
 
@@ -69,10 +91,62 @@ public class TileClicked implements EventProcessor{
 		//if tile is selected for movement or attack
 		else if (gameState.getSelectedUnit() != null) {
 			//selected for attack
-			//if(unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()){
-				// @Alaa: Implement the logic for handling an attack. When the player selects an opponent's unit (red tile),
-				// the unit should not move to the opponent's tile. Instead, it should move to the adjacent tile and then perform an attack.
-			//}
+			if(unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()){
+					Tile opponentTile = gameState.getBoard().getTileForUnit(unitOnTile);
+
+					//if source tile is already adjacent, attack directly
+					if (isAdjacentTile(gameState.getSourceTile(), opponentTile)) {
+						handleAttack(out, gameState, gameState.getSelectedUnit(), unitOnTile);
+						return;
+					}
+
+					//Find closet empty adjacent tile
+					Tile adjacentTile = null;
+					int[][] directions = {
+							{-1, 0}, {1, 0}, // Left, Right
+							{0, -1}, {0, 1}, // Up, Down
+							{-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
+					};
+
+					// Loop through adjacent tiles
+					for (int[] dir : directions) {
+						int newX = opponentTile.getTilex() + dir[0];
+						int newY = opponentTile.getTiley() + dir[1];
+
+						// Check if tile is within board limits
+						if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
+							Tile potentialTile = gameState.getBoard().getTile(newX, newY);
+
+							if (gameState.isHighlightedTile(potentialTile)) {
+								adjacentTile = gameState.getBoard().getTile(newX, newY);
+								break;
+							}
+						}
+					}
+				gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), adjacentTile);
+				try{Thread.sleep(600);}
+				catch (InterruptedException e){
+								System.out.println("Error in movement delay");
+							}
+				handleAttack(out, gameState, gameState.getSelectedUnit(), unitOnTile);
+
+//					// Move unit to adjacent tile before attacking
+//					if (adjacentTile != null) {
+//						gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), adjacentTile);
+//
+//						// Wait for movement to complete before attacking
+//							try{
+//								Thread.sleep(600);
+//							} catch (InterruptedException e){
+//								System.out.println("Error in movement delay");
+//							}
+//							//Attack after movement
+//						handleAttack(out, gameState, gameState.getSelectedUnit(), unitOnTile);
+//
+//
+//					}
+
+			}
 
 			if (gameState.isHighlightedTile(clickedTile) && !gameState.getSelectedUnit().hasMoved()) {
 //				Update the unit's position using setPositionByTile
