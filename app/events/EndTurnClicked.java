@@ -24,6 +24,9 @@ public class EndTurnClicked implements EventProcessor{
 
 	@Override
 	public void processEvent(ActorRef out, GameState gameState, JsonNode message) {
+		if (!gameState.getHighlightedTiles().isEmpty()) {
+			gameState.clearAllHighlights(out);
+		}
 		// Get the current player and opponent
 		Player endTurnPlayer = gameState.getCurrentPlayer();
 		Player startTurnPlayer = gameState.getOpponentPlayer();

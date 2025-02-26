@@ -176,6 +176,14 @@ public class Unit {
 	public void setHasMoved(boolean b) {
 		isMoved = b;
 	}
+
+	public boolean hasAttacked(){
+		return isAttacked;
+	}
+
+	public void setHasAttacked(boolean b) {
+		isAttacked = b;
+	}
 	
 //	public int getPlayerId() {
 //        return playerId;

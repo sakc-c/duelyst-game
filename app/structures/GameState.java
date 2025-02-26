@@ -66,6 +66,7 @@ public class GameState {
     public void resetHasMovedFlags() {
         for (Unit unit : board.getUnitMap().values()) {
             unit.setHasMoved(false);
+            unit.setHasAttacked(false);
         }
     }
 
