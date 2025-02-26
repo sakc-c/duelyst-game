@@ -44,61 +44,33 @@ public class HumanPlayer extends Player {
     }
 
     public void playCard(Card card, ActorRef out) {
-        if (hand.contains(card)) { 
-        	//System.out.println("Current Mana" + getMana());//&& getMana() >= card.getManacost()){//once we set mana cost for cards?
+        if (hand.contains(card)) {
         	if (getMana() >= card.getManacost()) {
                 
                 int removedIndex = hand.indexOf(card); // Get card position
                 System.out.println("Index" + removedIndex);
 
                 // Remove the card from the UI
-                
                 BasicCommands.deleteCard(out, removedIndex+1);
-                
 
-//         		// Shift remaining cards left in the UI
+        		// Shift remaining cards left in the UI
                 for (int i = removedIndex + 1; i < hand.size(); i++) {
                     Card shiftedCard = hand.get(i);
-                   
                     BasicCommands.deleteCard(out, i + 1); // Clear old position
                     BasicCommands.drawCard(out, shiftedCard, i, 0); // Draw at new position
                 }
-
                 // Remove the card from the hand
                 hand.remove(card);
-                
 
                 // Ensure the last UI slot is cleared after shifting
                 BasicCommands.deleteCard(out, hand.size() + 1);
 
                 // Deduct mana
                 setMana(getMana() - card.getManacost());
-                BasicCommands.setPlayer1Mana(out, this); 
-             
+                BasicCommands.setPlayer1Mana(out, this);
         }
         }
     }
-//    public void playCard(Card card, ActorRef out) {
-//        if (hand.contains(card)) { //&& getMana() >= card.getManacost() once we set mana cost for cards?
-//            //setMana(getMana() - card.getManacost()); // Deduct mana
-//            int removedIndex = hand.indexOf(card); // Get card position
-//
-//            BasicCommands.deleteCard(out, removedIndex + 1); // Remove from UI
-//
-//            // Shift remaining cards left in UI
-//            for (int i = removedIndex+1; i < hand.size(); i++) {
-//                Card shiftedCard = hand.get(i);
-//                BasicCommands.deleteCard(out, i + 1); // Clear old position before redrawing
-//                BasicCommands.drawCard(out, shiftedCard, i, 0); // Draw at new position
-//            }
-//
-//            hand.remove(card); // Remove from hand
-//
-//            // Ensure last UI slot is cleared after shifting
-//            BasicCommands.deleteCard(out, hand.size() + 1);
-//        }
-//    }
-
 
     public void attack(Unit target) {
         // Implement attack selection

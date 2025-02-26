@@ -43,7 +43,6 @@ public class Board {
 
     public void placeUnitOnTile(Unit unit, Tile tile) {
 
-
         // Remove the unit from its current tile (if any)
        if (unitMap.containsValue(unit)) {
             Tile currentTile = getTileForUnit(unit);
