@@ -88,7 +88,7 @@ public class TileClicked implements EventProcessor {
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);
             } else if (!unitOnTile.hasAttacked()) {
-                highlightValidAttackTiles(unitOnTile, gameState, out);
+                highlightValidAttackTiles(clickedTile, gameState, out);
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);
             }
@@ -138,6 +138,8 @@ public class TileClicked implements EventProcessor {
                 {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals, both x and y not 0
         };
 
+        Tile lastTile = null;
+
         // Highlight directions
         for (int[] direction : validDirections) {
             int range = (direction[0] != 0 && direction[1] != 0) ? diagonalRange : cardinalRange;
@@ -164,9 +166,14 @@ public class TileClicked implements EventProcessor {
                         // Highlight empty tiles
                         BasicCommands.drawTile(out, tile, 1); // Highlight mode = 1
                         gameState.addHighlightedTile(tile);
+                        lastTile = tile;
                     }
                 }
             }
+            if (lastTile != null){
+                highlightValidAttackTiles(lastTile, gameState, out);
+            }
+
         }
         try {
             Thread.sleep(200);
@@ -176,27 +183,28 @@ public class TileClicked implements EventProcessor {
 
     }
 
-    private void highlightValidAttackTiles(Unit unit, GameState gameState, ActorRef out) {
-        gameState.clearAllHighlights(out);
-        Tile unitTile = gameState.getBoard().getTileForUnit(unit);
+    private void highlightValidAttackTiles(Tile unitTile, GameState gameState, ActorRef out) {
+        //gameState.clearAllHighlights(out);
+        //Tile unitTile = gameState.getBoard().getTileForUnit(unit);
         List<Tile> adjacentTiles = getAdjacentTiles(gameState, unitTile);
 
         // Highlight adjacent tiles with enemy units
         for (Tile tile : adjacentTiles) {
             Unit unitOnTile = gameState.getBoard().getUnitOnTile(tile);
 
+
+
             if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
                 BasicCommands.drawTile(out, tile, 2); // Highlight mode = 2 (Red)
-                gameState.addHighlightedTile(tile); // Track highlighted tiles
-                System.out.println("Highlighting tile for attack: " + tile.getTilex() + ", " + tile.getTiley()); // Debugging
+               gameState.addHighlightedTile(tile); // Track highlighted tiles
+               System.out.println("Highlighting tile for attack: " + tile.getTilex() + ", " + tile.getTiley()); // Debugging
             }
+
+
+
         }
 
-        try {
-            Thread.sleep(200); // Simulate delay for highlighting
-        } catch (InterruptedException e) {
-            System.out.println("Error");
-        }
+
     }
 
     private boolean isAdjacentTile(Tile tile1, Tile tile2) {
