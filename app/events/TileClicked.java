@@ -225,7 +225,7 @@ public class TileClicked implements EventProcessor {
         return adjacentTiles;
     }
 
-    private Tile findEmptyAdjacentTile(GameState gameState, Tile targetTile) {
+    private Tile findPotentialAdjacentTile(GameState gameState, Tile targetTile) {
         List<Tile> adjacentTiles = getAdjacentTiles(gameState, targetTile);
 
         for (Tile tile : adjacentTiles) {
@@ -245,7 +245,7 @@ public class TileClicked implements EventProcessor {
         //if not adjacent to the target
         if (!isAdjacentTile(attackerTile, targetTile)) {
             // Move to an adjacent tile
-            Tile adjacentTile = findEmptyAdjacentTile(gameState, targetTile);
+            Tile adjacentTile = findPotentialAdjacentTile(gameState, targetTile);
             if (adjacentTile == null) {
                 return;
             }
@@ -278,25 +278,27 @@ public class TileClicked implements EventProcessor {
         gameState.clearAllHighlights(out); // Clear highlights after the attack
     }
 
-    private boolean hasUnitOnXAxis(GameState gameState, Tile startTile, Tile targetTile) {
+    private boolean hasUnitOnXAxis(GameState gameState, Tile startTile) {
         int startX = startTile.getTilex();
         int startY = startTile.getTiley();
 
-        // Check to the left of startTile (from startX - 1 to 0)
-        for (int x = startX - 1; x >= 0; x--) {
-            Tile tile = gameState.getBoard().getTile(x, startY);
-            if (tile != null && gameState.getBoard().getUnitOnTile(tile) != null) {
+        // Check the tile to the left
+        if (startX > 0) {
+            Tile leftTile = gameState.getBoard().getTile(startX - 1, startY);
+            if (leftTile != null && gameState.getBoard().getUnitOnTile(leftTile) != null) {
                 return true; // Unit found to the left
             }
         }
-        // Check to the right of startTile (from startX + 1 to the end of the board)
-        for (int x = startX + 1; x < 9; x++) {
-            Tile tile = gameState.getBoard().getTile(x, startY);
-            if (tile != null && gameState.getBoard().getUnitOnTile(tile) != null) {
+
+        // Check the tile to the right
+        if (startX < 8) {
+            Tile rightTile = gameState.getBoard().getTile(startX + 1, startY);
+            if (rightTile != null && gameState.getBoard().getUnitOnTile(rightTile) != null) {
                 return true; // Unit found to the right
             }
         }
-        return false; // No unit found on the x-axis
+
+        return false; // No unit found on the adjacent tiles
     }
 
     private void handleMovement (GameState gameState, Tile targetTile, Unit selectedUnit) {
@@ -305,17 +307,14 @@ public class TileClicked implements EventProcessor {
         // Check if the movement is diagonal
         int dx = Math.abs(targetTile.getTilex() - startTile.getTilex());
         int dy = Math.abs(targetTile.getTiley() - startTile.getTiley());
-        boolean isDiagonal = (dx == 1 && dy == 1);
+        boolean isDiagonal = (dx != 0 && dy != 0);
 
         if (isDiagonal) {
-            // Check for obstacles on the x-axis and y-axis
-            boolean hasUnitOnX = hasUnitOnXAxis(gameState, startTile, targetTile);
-            System.out.println("testing for X-axis blocker");
+            // Check for obstacles adjacent on x-axis
+            boolean hasUnitOnX = hasUnitOnXAxis(gameState, startTile);
 
             // Move y-axis first if there's a unit on the side (x-axis)
             boolean yfirst = hasUnitOnX;
-
-            // Call moveUnitToTile with the correct axis priority
             gameState.getBoard().placeUnitOnTile(selectedUnit, targetTile, yfirst);
         } else {
             // Non-diagonal movement, place the unit directly
@@ -325,7 +324,7 @@ public class TileClicked implements EventProcessor {
         // Mark the unit as moved
         selectedUnit.setHasMoved(true);
 
-        // Clear highlights and reset selection
+        //reset selection
         gameState.setSourceTile(null);
         gameState.setSelectedUnit(null);
     }
