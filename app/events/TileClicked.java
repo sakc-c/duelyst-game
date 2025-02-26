@@ -70,10 +70,8 @@ public class TileClicked implements EventProcessor {
                 }
                 // Selected for movement
                 else if (gameState.isHighlightedTile(clickedTile) && !selectedUnit.hasMoved()) {
-                    gameState.getBoard().placeUnitOnTile(gameState.getSelectedUnit(), clickedTile);
-                    gameState.clearAllHighlights(out);
-                    gameState.setSourceTile(null);
-                    gameState.setSelectedUnit(null);
+                   handleMovement(gameState,clickedTile,selectedUnit);
+                   gameState.clearAllHighlights(out);
                 }
                 // Clicked on a non-highlighted tile, reset selection
                 else {
@@ -123,7 +121,7 @@ public class TileClicked implements EventProcessor {
         Card selectedCard = gameState.getSelectedCard();
         Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
         newUnit.setOwner(gameState.getCurrentPlayer());
-        gameState.getBoard().placeUnitOnTile(newUnit, tile);
+        gameState.getBoard().placeUnitOnTile(newUnit, tile,false);
         newUnit.setHasMoved(true);
         newUnit.setHasAttacked(true);
     }
@@ -135,8 +133,7 @@ public class TileClicked implements EventProcessor {
         int diagonalRange = 1;
 
         // Define movement ranges
-        int[][] validDirections = {
-                {-1, 0}, {1, 0}, // Left, Right
+        int[][] validDirections = {{-1, 0}, {1, 0}, // Left, Right
                 {0, -1}, {0, 1}, // Up, Down
                 {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals, both x and y not 0
         };
@@ -169,15 +166,15 @@ public class TileClicked implements EventProcessor {
                         gameState.addHighlightedTile(tile);
                     }
                 }
-                }
             }
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                System.out.println("Error");
-            }
-
         }
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            System.out.println("Error");
+        }
+
+    }
 
     private void highlightValidAttackTiles(Unit unit, GameState gameState, ActorRef out) {
         gameState.clearAllHighlights(out);
@@ -210,8 +207,7 @@ public class TileClicked implements EventProcessor {
 
     private List<Tile> getAdjacentTiles(GameState gameState, Tile tile) {
         List<Tile> adjacentTiles = new ArrayList<>();
-        int[][] directions = {
-                {-1, 0}, {1, 0}, // Left, Right
+        int[][] directions = {{-1, 0}, {1, 0}, // Left, Right
                 {0, -1}, {0, 1}, // Up, Down
                 {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
         };
@@ -254,7 +250,7 @@ public class TileClicked implements EventProcessor {
                 return;
             }
             // Move the attacker to the adjacent tile
-            gameState.getBoard().placeUnitOnTile(attacker, adjacentTile);
+            gameState.getBoard().placeUnitOnTile(attacker, adjacentTile,false);
 
             // Wait for movement to complete
             try {
@@ -281,4 +277,58 @@ public class TileClicked implements EventProcessor {
         attacker.setHasAttacked(true);
         gameState.clearAllHighlights(out); // Clear highlights after the attack
     }
+
+    private boolean hasUnitOnXAxis(GameState gameState, Tile startTile, Tile targetTile) {
+        int startX = startTile.getTilex();
+        int startY = startTile.getTiley();
+
+        // Check to the left of startTile (from startX - 1 to 0)
+        for (int x = startX - 1; x >= 0; x--) {
+            Tile tile = gameState.getBoard().getTile(x, startY);
+            if (tile != null && gameState.getBoard().getUnitOnTile(tile) != null) {
+                return true; // Unit found to the left
+            }
+        }
+        // Check to the right of startTile (from startX + 1 to the end of the board)
+        for (int x = startX + 1; x < 9; x++) {
+            Tile tile = gameState.getBoard().getTile(x, startY);
+            if (tile != null && gameState.getBoard().getUnitOnTile(tile) != null) {
+                return true; // Unit found to the right
+            }
+        }
+        return false; // No unit found on the x-axis
+    }
+
+    private void handleMovement (GameState gameState, Tile targetTile, Unit selectedUnit) {
+        Tile startTile = gameState.getSourceTile();
+
+        // Check if the movement is diagonal
+        int dx = Math.abs(targetTile.getTilex() - startTile.getTilex());
+        int dy = Math.abs(targetTile.getTiley() - startTile.getTiley());
+        boolean isDiagonal = (dx == 1 && dy == 1);
+
+        if (isDiagonal) {
+            // Check for obstacles on the x-axis and y-axis
+            boolean hasUnitOnX = hasUnitOnXAxis(gameState, startTile, targetTile);
+            System.out.println("testing for X-axis blocker");
+
+            // Move y-axis first if there's a unit on the side (x-axis)
+            boolean yfirst = hasUnitOnX;
+
+            // Call moveUnitToTile with the correct axis priority
+            gameState.getBoard().placeUnitOnTile(selectedUnit, targetTile, yfirst);
+        } else {
+            // Non-diagonal movement, place the unit directly
+            gameState.getBoard().placeUnitOnTile(selectedUnit, targetTile,false);
+        }
+
+        // Mark the unit as moved
+        selectedUnit.setHasMoved(true);
+
+        // Clear highlights and reset selection
+        gameState.setSourceTile(null);
+        gameState.setSelectedUnit(null);
+    }
+
+
 }

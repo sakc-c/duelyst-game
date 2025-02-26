@@ -41,14 +41,15 @@ public class Board {
     }
 
 
-    public void placeUnitOnTile(Unit unit, Tile tile) {
+    public void placeUnitOnTile(Unit unit, Tile tile, boolean yFirst) {
 
         // Remove the unit from its current tile (if any)
        if (unitMap.containsValue(unit)) {
             Tile currentTile = getTileForUnit(unit);
             if (currentTile != null) {
                 unitMap.remove(currentTile); //from the map remove the key-value pair to keep map updated
-                BasicCommands.moveUnitToTile(out, unit, tile);
+                System.out.println("Placing unit " + unit + " on tile " + tile + " (yFirst: " + yFirst + ")");
+                BasicCommands.moveUnitToTile(out, unit, tile, yFirst);
                 BasicCommands.playUnitAnimation(out, unit, UnitAnimationType.move);
                 try {
                     Thread.sleep(200); // Small delay for animation

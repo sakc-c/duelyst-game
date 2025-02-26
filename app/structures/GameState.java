@@ -49,8 +49,8 @@ public class GameState {
    public void setBoard(Board board) {
        this.board = board;
        
-       board.placeUnitOnTile(player1.getAvatar(), board.getTile(1, 2));
-       board.placeUnitOnTile(player2.getAvatar(), board.getTile(7, 2));
+       board.placeUnitOnTile(player1.getAvatar(), board.getTile(1, 2),false);
+       board.placeUnitOnTile(player2.getAvatar(), board.getTile(7, 2),false);
        
 
    }     
