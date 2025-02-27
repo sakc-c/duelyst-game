@@ -174,6 +174,9 @@ public class Unit {
 	public int getCurrentHealth() {
 		return currentHealth;
 	}
+	public int getMaxHealth() {
+		return maxHealth;
+	}
 
 	public int setCurrentHealth(int health) {return this.currentHealth = health;}
 
