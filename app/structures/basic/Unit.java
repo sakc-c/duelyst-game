@@ -1,9 +1,16 @@
 package structures.basic;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
+
+import akka.actor.ActorRef;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import structures.Ability;
 import structures.HumanPlayer;
+import structures.OnHitEventListener;
 import structures.GameState;
 
 /**
@@ -39,9 +46,12 @@ public class Unit {
 	private boolean isAttacked;
 	private String name;
 	private boolean avatar;
+	private List<OnHitEventListener> onHitEventListeners = new ArrayList<>(); // List of event listeners
 
 	@JsonIgnore // Exclude the ability field from serialization
 	private Ability ability;
+	
+	
 
 	public String getName() {
 		return name;
@@ -219,6 +229,16 @@ public class Unit {
 
     public void setAvatar(boolean avatar) {
         this.avatar = avatar;
+    }
+    
+    public void addOnHitEventListener(OnHitEventListener listener) {
+        onHitEventListeners.add(listener);
+    }
+
+    public void triggerOnHitEffect(ActorRef out, GameState gameState) {
+        for (OnHitEventListener listener : onHitEventListeners) {
+            listener.onHit(out, gameState);
+        }
     }
 
 //	public int getPlayerId() {

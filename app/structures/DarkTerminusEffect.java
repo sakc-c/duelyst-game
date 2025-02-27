@@ -1,5 +1,7 @@
 package structures;
 
+import java.util.List;
+
 import akka.actor.ActorRef;
 import commands.BasicCommands;
 import structures.GameState;
@@ -16,30 +18,26 @@ public class DarkTerminusEffect implements SpellEffect {
         // Clear all existing highlights
         gameState.clearAllHighlights(out);
 
-        // Iterate through all tiles on the board
-        for (int x = 0; x < 9; x++) {
-            for (int y = 0; y < 5; y++) {
-                Tile currentTile = gameState.getBoard().getTile(x, y);
-                Unit unitOnTile = gameState.getBoard().getUnitOnTile(currentTile);
+        // Get tiles occupied by enemy units
+        List<Tile> enemyTiles = gameState.getTilesOccupiedByEnemyPlayer();
 
-                // Highlight tiles with enemy creatures
-                if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer() && !unitOnTile.isAvatar()) {
-                    BasicCommands.drawTile(out, currentTile, 2); // Highlight mode = 2 (Red)
-                    gameState.addHighlightedTile(currentTile); // Track highlighted tiles
-                }
+        // Highlight tiles with enemy creatures (excluding avatar)
+        for (Tile enemyTile : enemyTiles) {
+            Unit unitOnTile = gameState.getBoard().getUnitOnTile(enemyTile);
+            if (unitOnTile != null && !unitOnTile.isAvatar()) {
+                BasicCommands.drawTile(out, enemyTile, 2); // Highlight mode = 2 (Red)
+                gameState.addHighlightedTile(enemyTile); // Track highlighted tiles
             }
         }
     }
 
     @Override
     public void applyEffect(ActorRef out, GameState gameState, Tile targetTile) {
-        Unit targetUnit = gameState.getBoard().getUnitOnTile(targetTile);
-
-        // Check if the target is an enemy creature
-        if (targetUnit != null && targetUnit.getOwner() == gameState.getOpponentPlayer() && !targetUnit.isAvatar()) {
+    	// Check if the target tile is highlighted (valid target)
+        	if (gameState.isHighlightedTile(targetTile))  {
             // Destroy the enemy creature
             gameState.getBoard().removeUnitFromTile(targetTile, out);
-            BasicCommands.deleteUnit(out, targetUnit); // Remove the unit from the UI
+//            BasicCommands.deleteUnit(out, targetUnit); // Remove the unit from the UI
 
             // Summon a Wraithling on the same tile
             Unit wraithling = BasicObjectBuilders.loadUnit(StaticConfFiles.wraithling, gameState.getNextUnitId(), Unit.class);
@@ -47,6 +45,12 @@ public class DarkTerminusEffect implements SpellEffect {
 
             // Place the Wraithling on the tile
             gameState.getBoard().placeUnitOnTile(wraithling, targetTile, false);
+            
+            try {
+                Thread.sleep(500); // 500ms delay
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
 //            // Update the UI
 //            BasicCommands.drawUnit(out, wraithling, targetTile);
@@ -61,5 +65,5 @@ public class DarkTerminusEffect implements SpellEffect {
                 e.printStackTrace();
             }
         }
-    }
+    } 
 }

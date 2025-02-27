@@ -258,6 +258,11 @@ public class TileClicked implements EventProcessor {
         // Target takes damage
         target.takeDamage(attacker.getAttackPower());
         BasicCommands.setUnitHealth(out, target, target.getCurrentHealth());
+        
+     // Trigger the "On Hit" effect if the attacker is the avatar
+        if (attacker == gameState.getCurrentPlayer().getAvatar()) {
+            attacker.triggerOnHitEffect(out, gameState);
+        }
 
         // Wait for attack to complete
         try {
@@ -277,6 +282,7 @@ public class TileClicked implements EventProcessor {
             triggerDeathwatchAbilities(out, gameState, target);
         }
 
+     
 
         // Mark the attacker as having moved and attacked
         attacker.setHasMoved(true);
@@ -299,7 +305,7 @@ public class TileClicked implements EventProcessor {
                 unit.getAbility().triggerAbility(out, gameState, tile, gameState.getBoard().getTileForUnit(deadUnit));
             }
         }
-    }
+    } 
     
 
     private boolean hasUnitOnXAxis(GameState gameState, Tile startTile) {

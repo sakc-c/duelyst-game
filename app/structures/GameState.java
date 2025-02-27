@@ -160,6 +160,18 @@ public class GameState {
             }
         }
         return occupiedTiles;
+    } 
+    
+    public List<Tile> getTilesOccupiedByEnemyPlayer() {
+        List<Tile> enemyTiles = new ArrayList<>();
+        for (Map.Entry<Tile, Unit> entry : board.getUnitMap().entrySet()) {
+            Unit unit = entry.getValue();
+            // Check if the unit belongs to the enemy and is not the avatar
+            if (unit.getOwner() == getOpponentPlayer()) {
+                enemyTiles.add(entry.getKey());
+            }
+        }
+        return enemyTiles;
     }
     
     
