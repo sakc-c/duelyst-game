@@ -12,6 +12,8 @@ public class Player {
 	int health;
 	int mana;
 	private Unit avatar;
+	private int artifactRobustness = 0; // 0 means no artifact is equipped
+    private boolean hasArtifact = false;
 //	private int id;
 	
 	public Player() {
@@ -44,6 +46,35 @@ public class Player {
 	public void setAvatar(Unit avatar) {
 		this.avatar = avatar;
 	}
+	
+	public void equipArtifact(int robustness) {
+        this.artifactRobustness = robustness;
+        this.hasArtifact = true;
+    }
+
+    public void takeDamage(int damage) {
+        // Reduce avatar's health
+        this.health -= damage;
+
+        // If an artifact is equipped, decrease its robustness
+        if (hasArtifact) {
+            artifactRobustness--;
+
+            // Check if the artifact is destroyed
+            if (artifactRobustness <= 0) {
+                hasArtifact = false; // Remove the artifact
+                artifactRobustness = 0;
+            }
+        }
+    }
+
+    public boolean hasArtifact() {
+        return hasArtifact;
+    }
+
+    public int getArtifactRobustness() {
+        return artifactRobustness;
+    }
 
 }
 

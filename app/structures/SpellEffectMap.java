@@ -10,6 +10,7 @@ public class SpellEffectMap {
         // Populate the map with spell card names and their effects
         spells.put("Wraithling Swarm", new WraithlingSwarm());
         spells.put("Dark Terminus", new DarkTerminusEffect());
+        spells.put("Horn of the Forsaken", new HornOfTheForsaken());
         // Add more spell cards and their effects here
     }
 
