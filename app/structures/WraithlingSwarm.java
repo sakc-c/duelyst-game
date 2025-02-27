@@ -117,6 +117,9 @@ public class WraithlingSwarm implements SpellEffect {
 
 	        // Place the Wraithling on the vertical tile
 	        gameState.getBoard().placeUnitOnTile(wraithling, verticalTile, false);
+	     // Set the Wraithling's hasMoved and hasAttacked flags to true
+	        wraithling.setHasMoved(true);
+	        wraithling.setHasAttacked(true);
 	        
 	     // Add a small delay to ensure the unit is drawn
 	        try {
