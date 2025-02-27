@@ -110,8 +110,18 @@ public class TileClicked implements EventProcessor {
     }
 
     private void handleSpellCardClick(ActorRef out, GameState gameState, Tile clickedTile, Unit unitOnTile) {
-        // Handle spell-specific logic (e.g., cast spell on the clicked tile)
-        // For now, just clear highlights
+        Card selectedCard = gameState.getSelectedCard();
+        if (selectedCard != null && !selectedCard.isCreature()) {
+            SpellEffect spellEffect = SpellEffectMap.getSpellEffectForCard(selectedCard.getCardname());
+            if (spellEffect != null && gameState.isHighlightedTile(clickedTile)) {
+                spellEffect.applyEffect(out, gameState, clickedTile);
+             // Remove the card from the player's hand and update the UI
+                if (gameState.getCurrentPlayer() instanceof HumanPlayer) {
+                    HumanPlayer currentPlayer = (HumanPlayer) gameState.getCurrentPlayer();
+                    currentPlayer.playCard(selectedCard, out); // Use playCard to remove the card
+                }
+            }
+        }
         gameState.clearAllHighlights(out);
     }
 
@@ -290,58 +300,65 @@ public class TileClicked implements EventProcessor {
             }
         }
     }
+    
 
-    private boolean hasUnitOnXAxis(GameState gameState, Tile startTile, Tile targetTile) {
+    private boolean hasUnitOnXAxis(GameState gameState, Tile startTile) {
         int startX = startTile.getTilex();
         int startY = startTile.getTiley();
 
-        // Check to the left of startTile (from startX - 1 to 0)
-        for (int x = startX - 1; x >= 0; x--) {
-            Tile tile = gameState.getBoard().getTile(x, startY);
-            if (tile != null && gameState.getBoard().getUnitOnTile(tile) != null) {
+        // Check the tile to the left
+        if (startX > 0) {
+            Tile leftTile = gameState.getBoard().getTile(startX - 1, startY);
+            if (leftTile != null && gameState.getBoard().getUnitOnTile(leftTile) != null) {
                 return true; // Unit found to the left
             }
         }
-        // Check to the right of startTile (from startX + 1 to the end of the board)
-        for (int x = startX + 1; x < 9; x++) {
-            Tile tile = gameState.getBoard().getTile(x, startY);
-            if (tile != null && gameState.getBoard().getUnitOnTile(tile) != null) {
+
+        // Check the tile to the right
+        if (startX < 8) {
+            Tile rightTile = gameState.getBoard().getTile(startX + 1, startY);
+            if (rightTile != null && gameState.getBoard().getUnitOnTile(rightTile) != null) {
                 return true; // Unit found to the right
             }
         }
-        return false; // No unit found on the x-axis
+
+        return false; // No unit found on the adjacent tiles
     }
 
-    private void handleMovement(GameState gameState, Tile targetTile, Unit selectedUnit) {
+        
+
+    private void handleMovement (GameState gameState, Tile targetTile, Unit selectedUnit) {
         Tile startTile = gameState.getSourceTile();
 
         // Check if the movement is diagonal
         int dx = Math.abs(targetTile.getTilex() - startTile.getTilex());
         int dy = Math.abs(targetTile.getTiley() - startTile.getTiley());
-        boolean isDiagonal = (dx == 1 && dy == 1);
+        boolean isDiagonal = (dx != 0 && dy != 0);
 
         if (isDiagonal) {
-            // Check for obstacles on the x-axis and y-axis
-            boolean hasUnitOnX = hasUnitOnXAxis(gameState, startTile, targetTile);
-            System.out.println("testing for X-axis blocker");
+            // Check for obstacles adjacent on x-axis
+            boolean hasUnitOnX = hasUnitOnXAxis(gameState, startTile);
 
             // Move y-axis first if there's a unit on the side (x-axis)
             boolean yfirst = hasUnitOnX;
-
-            // Call moveUnitToTile with the correct axis priority
             gameState.getBoard().placeUnitOnTile(selectedUnit, targetTile, yfirst);
         } else {
             // Non-diagonal movement, place the unit directly
-            gameState.getBoard().placeUnitOnTile(selectedUnit, targetTile,false);
+            gameState.getBoard().placeUnitOnTile(selectedUnit, targetTile, false);
         }
 
+            // Non-diagonal movement, place the unit directly
         // Mark the unit as moved
         selectedUnit.setHasMoved(true);
 
-        // Clear highlights and reset selection
+        //reset selection
         gameState.setSourceTile(null);
         gameState.setSelectedUnit(null);
     }
-
-
+   
 }
+    
+    
+
+
+

@@ -9,6 +9,8 @@ import akka.actor.ActorRef;
 import commands.BasicCommands;
 import structures.GameState;
 import structures.HumanPlayer;
+import structures.SpellEffect;
+import structures.SpellEffectMap;
 import structures.basic.Card;
 import structures.basic.Player;
 import structures.basic.Position;
@@ -60,6 +62,12 @@ public class CardClicked implements EventProcessor {
             if (clickedCard.isCreature() && gameState.getCurrentPlayer().getMana()>=clickedCard.getManacost()) {
                 // Highlight valid tiles for summoning
             	highlightValidSummonTiles(out, gameState, message);
+            } else if (!clickedCard.isCreature() && gameState.getCurrentPlayer().getMana() >= clickedCard.getManacost()) {
+                // Handle spell card
+                SpellEffect spellEffect = SpellEffectMap.getSpellEffectForCard(clickedCard.getCardname());
+                if (spellEffect != null) {
+                    spellEffect.highlightValidTargets(out, gameState, null);
+                }
             } else {
                 // If the card is a spell, clear any existing tile highlights
                 gameState.clearAllHighlights(out);
