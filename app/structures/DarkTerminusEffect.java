@@ -37,7 +37,6 @@ public class DarkTerminusEffect implements SpellEffect {
         	if (gameState.isHighlightedTile(targetTile))  {
             // Destroy the enemy creature
             gameState.getBoard().removeUnitFromTile(targetTile, out);
-//            BasicCommands.deleteUnit(out, targetUnit); // Remove the unit from the UI
 
             // Summon a Wraithling on the same tile
             Unit wraithling = BasicObjectBuilders.loadUnit(StaticConfFiles.wraithling, gameState.getNextUnitId(), Unit.class);

@@ -11,9 +11,8 @@ import java.util.*;
 /**
  * This class can be used to hold information about the on-going game.
  * Its created with the GameActor.
- * 
- * @author Dr. Richard McCreadie
  *
+ * @author Dr. Richard McCreadie
  */
 public class GameState {
     private int currentTurn;
@@ -27,39 +26,56 @@ public class GameState {
     private Unit selectedUnit;
     private Card selectedCard;
     private int nextUnitId = 2;
-    
+
 
     public GameState() {
         this.currentTurn = 1;
         this.isHumanTurn = true; //start with player's turn
         this.gameInitialized = false; //needs to be initialised
         this.highlightedTiles = new HashSet<>();
-        
-       
+
+
     }
-    
-   
-   public void initializePlayers(HumanPlayer player1, AIController player2) {
+
+
+    public void initializePlayers(HumanPlayer player1, AIController player2) {
         this.player1 = player1;
         this.player2 = player2;
         this.player1.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.humanAvatar, getNextUnitId(), Unit.class));
         this.player2.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, getNextUnitId(), Unit.class));
-    } 
+    }
 
-   public void setBoard(ActorRef out, Board board) {
-       this.board = board;
-       
-       board.placeUnitOnTile(player1.getAvatar(), board.getTile(1, 2),false);
-       board.placeUnitOnTile(player2.getAvatar(), board.getTile(7, 2),false);
+    public void setBoard(ActorRef out, Board board) {
+        this.board = board;
 
-       Unit silver= BasicObjectBuilders.loadUnit(StaticConfFiles.silverguardSquire, getNextUnitId(), Unit.class);
-       silver.setOwner(player2);
-       silver.setCurrentHealth(2);
-       board.placeUnitOnTile(silver, board.getTile(3,2),false);
-       BasicCommands.setUnitHealth(out, silver,2 );
-       
+        Unit player1Avatar = player1.getAvatar();
+        Tile tile1 = board.getTile(1, 2);
+        player1Avatar.setPositionByTile(tile1);
+        board.getUnitMap().put(tile1, player1Avatar);
+        BasicCommands.drawUnit(out, player1Avatar, tile1);
 
-   }     
+        Unit player2Avatar = player2.getAvatar();
+        Tile tile2 = board.getTile(7, 2);
+        player2Avatar.setPositionByTile(tile2);
+        board.getUnitMap().put(tile2, player2Avatar);
+        BasicCommands.drawUnit(out, player2Avatar, tile1);
+
+        //just for testing - remember to remove
+        Unit silver = BasicObjectBuilders.loadUnit(StaticConfFiles.silverguardSquire, getNextUnitId(), Unit.class);
+        silver.setOwner(player2);
+        silver.setCurrentHealth(2);
+        silver.setAttackPower(3);
+        board.placeUnitOnTile(silver, board.getTile(3, 2), false);
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            System.out.println("Error");
+        }
+        BasicCommands.setUnitHealth(out, silver, 2);
+        BasicCommands.setUnitAttack(out,silver,3);
+
+
+    }
 
     public void nextTurn() {
         this.isHumanTurn = !this.isHumanTurn;
@@ -127,7 +143,7 @@ public class GameState {
     public void setSelectedUnit(Unit selectedUnit) {
         this.selectedUnit = selectedUnit;
     }
-    
+
     public Card getSelectedCard() {
         return selectedCard;
     }
@@ -135,15 +151,15 @@ public class GameState {
     public void setSelectedCard(Card selectedCard) {
         this.selectedCard = selectedCard;
     }
-    
+
     public int getNextUnitId() {
         return nextUnitId++;
     }
-    
+
     public Unit getCurrentPlayerAvatar() {
         return isHumanTurn ? player1.getAvatar() : player2.getAvatar();
     }
-    
+
     public void clearAllHighlights(ActorRef out) {
         for (Tile tile : highlightedTiles) {
             BasicCommands.drawTile(out, tile, 0); // Reset highlight (mode = 0)
@@ -160,8 +176,8 @@ public class GameState {
             }
         }
         return occupiedTiles;
-    } 
-    
+    }
+
     public List<Tile> getTilesOccupiedByEnemyPlayer() {
         List<Tile> enemyTiles = new ArrayList<>();
         for (Map.Entry<Tile, Unit> entry : board.getUnitMap().entrySet()) {
@@ -173,6 +189,13 @@ public class GameState {
         }
         return enemyTiles;
     }
-    
-    
+
+
+    public Player getPlayer1() {
+        return player1;
+    }
+
+    public Player getPlayer2() {
+        return player2;
+    }
 }

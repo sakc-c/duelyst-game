@@ -13,7 +13,7 @@ import java.util.Random;
 public class Deathwatch implements Ability {
 
     @Override
-    public void triggerAbility(ActorRef out, GameState gameState, Tile sourceTile, Tile targetTile) {
+    public void triggerAbility(ActorRef out, GameState gameState, Tile sourceTile) {
         Unit sourceUnit = gameState.getBoard().getUnitOnTile(sourceTile);
         String unitName = sourceUnit.getName();
 
