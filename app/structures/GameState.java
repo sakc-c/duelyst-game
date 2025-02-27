@@ -48,14 +48,29 @@ public class GameState {
 
    public void setBoard(ActorRef out, Board board) {
        this.board = board;
-       
-       board.placeUnitOnTile(player1.getAvatar(), board.getTile(1, 2),false);
-       board.placeUnitOnTile(player2.getAvatar(), board.getTile(7, 2),false);
 
+       Unit player1Avatar = player1.getAvatar();
+       Tile tile1 = board.getTile(1, 2);
+       player1Avatar.setPositionByTile(tile1);
+       board.getUnitMap().put(tile1,player1Avatar);
+       BasicCommands.drawUnit(out,player1Avatar,tile1);
+
+       Unit player2Avatar = player2.getAvatar();
+       Tile tile2 = board.getTile(7, 2);
+       player2Avatar.setPositionByTile(tile2);
+       board.getUnitMap().put(tile2,player2Avatar);
+       BasicCommands.drawUnit(out,player2Avatar,tile1);
+
+       //just for testing - remember to remove
        Unit silver= BasicObjectBuilders.loadUnit(StaticConfFiles.silverguardSquire, getNextUnitId(), Unit.class);
        silver.setOwner(player2);
        silver.setCurrentHealth(2);
        board.placeUnitOnTile(silver, board.getTile(3,2),false);
+       try {
+           Thread.sleep(200);
+       } catch (InterruptedException e) {
+           System.out.println("Error");
+       }
        BasicCommands.setUnitHealth(out, silver,2 );
        
 

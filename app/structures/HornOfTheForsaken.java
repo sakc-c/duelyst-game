@@ -33,8 +33,8 @@ public class HornOfTheForsaken implements SpellEffect, OnHitEventListener {
 
     @Override
     public void applyEffect(ActorRef out, GameState gameState, Tile targetTile) {
-    	// Get the player's avatar
-        Unit avatar = gameState.getCurrentPlayer().getAvatar();
+    	// Get the unit on the targetTile to applyEffect to
+        Unit unit = gameState.getBoard().getUnitOnTile(targetTile);
 
         // Equip the artifact to the player's avatar
         Player currentPlayer = gameState.getCurrentPlayer();
@@ -44,7 +44,7 @@ public class HornOfTheForsaken implements SpellEffect, OnHitEventListener {
         BasicCommands.addPlayer1Notification(out, "Horn of the Forsaken equipped!", 2);
 
      // Add the "On Hit" effect to the player's avatar
-        avatar.addOnHitEventListener(this); 
+        unit.addOnHitEventListener(this);
     }
 
     @Override

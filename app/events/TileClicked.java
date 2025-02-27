@@ -129,14 +129,31 @@ public class TileClicked implements EventProcessor {
         Card selectedCard = gameState.getSelectedCard();
         Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
         newUnit.setOwner(gameState.getCurrentPlayer());
+
         // Assign the ability to the unit
         Ability ability = CardAbilityMap.getAbilityForCard(selectedCard.getName());
         newUnit.setAbility(ability);
         newUnit.setName(selectedCard.getName());
+
         //place the unit on the board
         gameState.getBoard().placeUnitOnTile(newUnit, tile, false);
-        newUnit.setHasMoved(true);
-        newUnit.setHasAttacked(true);
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            System.out.println("Error");
+        }
+
+        //assign health and attack
+        int health = selectedCard.getBigCard().getHealth();
+        int attack = selectedCard.getBigCard().getAttack();
+        newUnit.setAttackPower(attack);
+        newUnit.setCurrentHealth(health);
+        newUnit.setMaximumHealth(health);
+
+        //set on UI
+        BasicCommands.setUnitAttack(out,newUnit,attack);
+        BasicCommands.setUnitHealth(out,newUnit, health);
     }
 
     private void highlightValidTiles(int tileX, int tileY, GameState gameState, ActorRef out) {
@@ -229,16 +246,19 @@ public class TileClicked implements EventProcessor {
         }
         return null; // No highlighted adjacent tile found
     }
-
     private void handleAttack(ActorRef out, GameState gameState, Unit target) {
         Unit attacker = gameState.getSelectedUnit();
+
+        // Null checks for attacker and target
+        if (attacker == null || target == null) {
+            throw new IllegalArgumentException("Attacker or target cannot be null");
+        }
 
         Tile attackerTile = gameState.getBoard().getTileForUnit(attacker);
         Tile targetTile = gameState.getBoard().getTileForUnit(target);
 
-        //if not adjacent to the target
+        // If not adjacent to the target, move to an adjacent tile
         if (!isAdjacentTile(attackerTile, targetTile)) {
-            // Move to an adjacent tile
             Tile adjacentTile = findPotentialAdjacentTile(gameState, targetTile);
             if (adjacentTile == null) {
                 return;
@@ -246,47 +266,65 @@ public class TileClicked implements EventProcessor {
             // Move the attacker to the adjacent tile
             gameState.getBoard().placeUnitOnTile(attacker, adjacentTile, false);
 
-            // Wait for movement to complete
+            // Simulate movement delay. 2500 is important to pause the code here before proceeding further which might set attacker to null.
             try {
-                Thread.sleep(700); // Simulate movement delay
+                Thread.sleep(2500);
             } catch (InterruptedException e) {
-
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Thread interrupted during sleep", e);
             }
         }
+
         // Perform the attack
         BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.attack);
-        // Target takes damage
         target.takeDamage(attacker.getAttackPower());
-        BasicCommands.setUnitHealth(out, target, target.getCurrentHealth());
-        
-     // Trigger the "On Hit" effect if the attacker is the avatar
-        if (attacker == gameState.getCurrentPlayer().getAvatar()) {
-            attacker.triggerOnHitEffect(out, gameState);
-        }
 
-        // Wait for attack to complete
-        try {
-            Thread.sleep(700); // Simulate delay before counterattack begins
-        } catch (InterruptedException e) {
-
-        }
-        // Target deals counter damage (if applicable)
-            target.counterDamage(attacker);
-            BasicCommands.setUnitHealth(out, attacker, attacker.getCurrentHealth());
-        // Check if the target is defeated
+        // Check if target is dead
         if (target.getCurrentHealth() <= 0) {
             gameState.getBoard().removeUnitFromTile(targetTile, out);
-            BasicCommands.deleteUnit(out, target); // Remove from the UI
-
-            // Trigger Deathwatch abilities for all units with the ability
             triggerDeathwatchAbilities(out, gameState, target);
+            target = null;
+        } else {
+            BasicCommands.setUnitHealth(out, target, target.getCurrentHealth());
         }
-
-     
 
         // Mark the attacker as having moved and attacked
         attacker.setHasMoved(true);
         attacker.setHasAttacked(true);
+
+        // Simulate delay before counterattack begins
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread interrupted during sleep", e);
+        }
+
+        // Counterattack logic
+        if (target != null) {
+            target.counterDamage(attacker);
+            if (attacker.getCurrentHealth() <= 0) {
+                System.out.println("Attacker has died. Removing from board...");
+                Tile newAttackerTile = gameState.getBoard().getTileForUnit(attacker);
+                gameState.getBoard().removeUnitFromTile(newAttackerTile, out);
+                System.out.println("Attacker removed from board and UI.");
+
+                triggerDeathwatchAbilities(out, gameState, attacker);
+                System.out.println("Deathwatch abilities triggered.");
+
+                attacker = null;
+                System.out.println("Attacker set to null.");
+            } else {
+                BasicCommands.setUnitHealth(out, attacker, attacker.getCurrentHealth());
+                System.out.println("Attacker health updated in UI.");
+            }
+        }
+
+        // Trigger "On Hit" effect if the attacker is the avatar
+        if (attacker != null && attacker == gameState.getCurrentPlayer().getAvatar()) {
+            attacker.triggerOnHitEffect(out, gameState);
+        }
+
         gameState.clearAllHighlights(out); // Clear highlights after the attack
     }
 
@@ -302,7 +340,7 @@ public class TileClicked implements EventProcessor {
             // Check if the unit has the Deathwatch ability
             if (unit.getAbility() instanceof Deathwatch) {
                 // Trigger the Deathwatch ability
-                unit.getAbility().triggerAbility(out, gameState, tile, gameState.getBoard().getTileForUnit(deadUnit));
+                unit.getAbility().triggerAbility(out, gameState, tile);
             }
         }
     } 

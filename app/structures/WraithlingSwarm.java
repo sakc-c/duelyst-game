@@ -33,11 +33,6 @@ public class WraithlingSwarm implements SpellEffect {
 	                    // Highlight the starting tile
 	                    BasicCommands.drawTile(out, currentTile, 1); // Highlight mode = 1 (Blue)
 	                    gameState.addHighlightedTile(currentTile); // Track highlighted tiles
-	                    try {
-	                        Thread.sleep(10); // Small delay to avoid overwhelming the front-end
-	                    } catch (InterruptedException e) {
-	                        e.printStackTrace();
-	                    }
 	                }
 	            }
 	        }
@@ -117,9 +112,6 @@ public class WraithlingSwarm implements SpellEffect {
 
 	        // Place the Wraithling on the vertical tile
 	        gameState.getBoard().placeUnitOnTile(wraithling, verticalTile, false);
-	     // Set the Wraithling's hasMoved and hasAttacked flags to true
-	        wraithling.setHasMoved(true);
-	        wraithling.setHasAttacked(true);
 	        
 	     // Add a small delay to ensure the unit is drawn
 	        try {

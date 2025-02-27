@@ -66,6 +66,13 @@ public class Board {
         unit.setPositionByTile(tile);
         unitMap.put(tile, unit);
         BasicCommands.drawUnit(out, unit, tile);
+        try {
+            Thread.sleep(100); // Small delay for animation
+        } catch (InterruptedException e) {
+            System.out.println("Error");
+        }
+        unit.setHasAttacked(true);
+        unit.setHasMoved(true);
     }
 
     public Unit getUnitOnTile(Tile tile) {

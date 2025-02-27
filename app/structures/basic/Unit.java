@@ -8,6 +8,7 @@ import akka.actor.ActorRef;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import commands.BasicCommands;
 import structures.Ability;
 import structures.HumanPlayer;
 import structures.OnHitEventListener;
@@ -239,6 +240,9 @@ public class Unit {
         for (OnHitEventListener listener : onHitEventListeners) {
             listener.onHit(out, gameState);
         }
+    }
+
+    public void setMaximumHealth(int health) { this.maxHealth = health;
     }
 
 //	public int getPlayerId() {
