@@ -110,15 +110,14 @@ public class WraithlingSwarm implements SpellEffect {
 	            
 	            return;
 	        }
-
+ 
 	        // Set the owner of the Wraithling
 	        wraithling.setOwner(gameState.getCurrentPlayer());
 
 	        // Place the Wraithling on the vertical tile
 	        gameState.getBoard().placeUnitOnTile(wraithling, verticalTile, false);
 
-	        // Update the UI
-	        BasicCommands.drawUnit(out, wraithling, verticalTile);
+	        
 	        BasicCommands.setUnitHealth(out, wraithling, 1); // Wraithlings have 1 health
 	        BasicCommands.setUnitAttack(out, wraithling, 1); // Wraithlings have 1 attack
 
