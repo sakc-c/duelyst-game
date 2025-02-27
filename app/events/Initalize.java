@@ -11,6 +11,9 @@ import structures.HumanPlayer;
 import structures.basic.Board;
 import commands.BasicCommands;
 import structures.basic.Player;
+import structures.basic.Unit;
+import utils.BasicObjectBuilders;
+import utils.StaticConfFiles;
 
 /**
  * Indicates that both the core game loop in the browser is starting, meaning
@@ -34,7 +37,7 @@ public class Initalize implements EventProcessor {
 
 		// Initialize the board
 		Board board = new Board(out);
-		gameState.setBoard(board);
+		gameState.setBoard(out, board);
 
 		// Set Player 1 & 2 health
 		BasicCommands.setPlayer1Health(out, player1);
@@ -46,10 +49,18 @@ public class Initalize implements EventProcessor {
 		}
 
 		//set Attack and Health for both Avatars
-		BasicCommands.setUnitAttack(out, player1.getAvatar(), 2);
-		BasicCommands.setUnitHealth(out, player1.getAvatar(), 20);
-		BasicCommands.setUnitAttack(out, player2.getAvatar(), 2);
-		BasicCommands.setUnitHealth(out, player2.getAvatar(), 20);
+		Unit player1Avatar = player1.getAvatar();
+		BasicCommands.setUnitAttack(out, player1Avatar, 2);
+		BasicCommands.setUnitHealth(out, player1Avatar, 20);
+		player1Avatar.setCurrentHealth(20);
+		player1Avatar.setAttackPower(2);
+
+		Unit player2Avatar = player2.getAvatar();
+		BasicCommands.setUnitAttack(out, player2Avatar, 2);
+		BasicCommands.setUnitHealth(out, player2Avatar, 20);
+		player2Avatar.setCurrentHealth(20);
+		player2Avatar.setAttackPower(2);
+
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {

@@ -15,7 +15,6 @@ import java.util.List;
 public class HumanPlayer extends Player {
     private List<Card> hand;
     private List<Card> deck;
-    private Unit avatar;
     private ActorRef out;
 
     public HumanPlayer(int health, int mana, ActorRef out) {
@@ -27,14 +26,6 @@ public class HumanPlayer extends Player {
 
     public List<Card> getHand() {
         return hand;
-    }
-
-    public Unit getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(Unit avatar) {
-        this.avatar = avatar;
     }
 
     public void drawInitialHand(ActorRef out) {
@@ -70,10 +61,6 @@ public class HumanPlayer extends Player {
                 BasicCommands.setPlayer1Mana(out, this);
         }
         }
-    }
-
-    public void attack(Unit target) {
-        // Implement attack selection
     }
 
     public void drawCard(ActorRef out) {

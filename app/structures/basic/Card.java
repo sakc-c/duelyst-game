@@ -1,6 +1,11 @@
 package structures.basic;
 
 
+import structures.Ability;
+import structures.Deathwatch;
+
+import java.util.List;
+
 /**
  * This is the base representation of a Card which is rendered in the player's hand.
  * A card has an id, a name (cardname) and a manacost. A card then has a large and mini
@@ -24,7 +29,7 @@ public class Card {
 	String unitConfig;
 	
 	public Card() {};
-	
+
 	public Card(int id, String cardname, int manacost, MiniCard miniCard, BigCard bigCard, boolean isCreature, String unitConfig) {
 		super();
 		this.id = id;
@@ -35,7 +40,7 @@ public class Card {
 		this.isCreature = isCreature;
 		this.unitConfig = unitConfig;
 	}
-	
+
 	public int getId() {
 		return id;
 	}
@@ -85,5 +90,6 @@ public class Card {
 		this.unitConfig = unitConfig;
 	}
 
-	
+
+	public String getName() { return this.cardname;}
 }
