@@ -42,15 +42,21 @@ public class GameState {
    public void initializePlayers(HumanPlayer player1, AIController player2) {
         this.player1 = player1;
         this.player2 = player2;
-        this.player1.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.humanAvatar, 1, Unit.class));
-        this.player2.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, 2, Unit.class));
+        this.player1.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.humanAvatar, getNextUnitId(), Unit.class));
+        this.player2.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, getNextUnitId(), Unit.class));
     } 
 
-   public void setBoard(Board board) {
+   public void setBoard(ActorRef out, Board board) {
        this.board = board;
        
        board.placeUnitOnTile(player1.getAvatar(), board.getTile(1, 2),false);
        board.placeUnitOnTile(player2.getAvatar(), board.getTile(7, 2),false);
+
+       Unit silver= BasicObjectBuilders.loadUnit(StaticConfFiles.silverguardSquire, getNextUnitId(), Unit.class);
+       silver.setOwner(player2);
+       silver.setCurrentHealth(2);
+       board.placeUnitOnTile(silver, board.getTile(3,2),false);
+       BasicCommands.setUnitHealth(out, silver,2 );
        
 
    }     

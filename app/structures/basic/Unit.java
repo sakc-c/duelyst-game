@@ -2,6 +2,7 @@ package structures.basic;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import structures.Ability;
 import structures.HumanPlayer;
 import structures.GameState;
 
@@ -36,7 +37,19 @@ public class Unit {
 	private int attackPower;
 	private boolean isMoved;
 	private boolean isAttacked;
-	private int playerId;
+	private String name;
+
+	@JsonIgnore // Exclude the ability field from serialization
+	private Ability ability;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	//private int playerId;
 	
 	public Unit() {}
 	
@@ -150,9 +163,13 @@ public class Unit {
 		return currentHealth;
 	}
 
+	public int setCurrentHealth(int health) {return this.currentHealth = health;}
+
 	public int getAttackPower() {
 		return attackPower;
 	}
+
+	public void setAttackPower(int attack) {this.attackPower = attack;}
 
 	public boolean isAlive() {
 		return currentHealth > 0;
@@ -160,8 +177,11 @@ public class Unit {
 
 	public void takeDamage(int damage) {
 		currentHealth -= damage;
-		if (currentHealth < 0) currentHealth = 0;
-		//remove unit the board and display notification
+	}
+
+	public void counterDamage(Unit attacker) {
+		// Example: Deal damage back to the attacker
+		attacker.takeDamage(this.attackPower);
 	}
 
 	public void heal(int amount) {
@@ -184,7 +204,13 @@ public class Unit {
 	public void setHasAttacked(boolean b) {
 		isAttacked = b;
 	}
-	
+
+	public void setAbility(Ability ability) {
+		this.ability = ability;
+	}
+
+	public Ability getAbility() {return ability;}
+
 //	public int getPlayerId() {
 //        return playerId;
 //    }

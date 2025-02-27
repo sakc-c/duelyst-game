@@ -26,5 +26,6 @@ public class StaticConfFiles {
 	public final static String f1_martyrdom = "conf/gameconfs/effects/f1_martyrdom.json";
 	public final static String f1_projectiles = "conf/gameconfs/effects/f1_projectiles.json";
 	public final static String f1_summon = "conf/gameconfs/effects/f1_summon.json";
-	
+
+	public final static String silverguardSquire = "conf/gameconfs/units/silverguard_squire.json";
 }

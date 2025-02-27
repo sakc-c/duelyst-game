@@ -2,8 +2,8 @@ package structures.basic;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
+import structures.GameState;
 import utils.BasicObjectBuilders;
-import utils.StaticConfFiles;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,8 +85,26 @@ public class Board {
     public Tile getTile(int x, int y) {
         return tiles[x][y]; // Retrieve a specific tile
     }
-    
-    
+
+    public List<Tile> getAdjacentTiles(GameState gameState, Tile tile) {
+        List<Tile> adjacentTiles = new ArrayList<>();
+        int[][] directions = {{-1, 0}, {1, 0}, // Left, Right
+                {0, -1}, {0, 1}, // Up, Down
+                {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
+        };
+
+        for (int[] dir : directions) {
+            int newX = tile.getTilex() + dir[0];
+            int newY = tile.getTiley() + dir[1];
+
+            // Check if the new coordinates are within the board bounds
+            if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
+                adjacentTiles.add(getTile(newX, newY));
+            }
+        }
+
+        return adjacentTiles;
+    }
     
     
 

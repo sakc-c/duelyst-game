@@ -18,7 +18,6 @@ public class AIController extends Player {
     private List<Card> hand;  // Cards that the AI can play
     private List<Card> deck;  // All available cards
     private int health; // AI's health
-    private Unit avatar;
     private ActorRef out;
 
     public AIController(int health, int mana, ActorRef out) {
@@ -38,13 +37,6 @@ public class AIController extends Player {
         return hand;
     }
 
-    public void setAvatar(Unit unit) {
-        this.avatar = unit;
-    }
-
-    public Unit getAvatar() {
-        return avatar;
-    }
 
     public void drawInitialHand() {
         for (int i = 0; i < 3; i++) {
@@ -68,16 +60,5 @@ public class AIController extends Player {
         // Trigger the "End Turn" event after the AI plays its card
         EndTurnClicked endTurnEvent = new EndTurnClicked();
         endTurnEvent.processEvent(out, gameState, null);  // Passing 'null' since the AI isn't clicking, it's automatic
-    }
-
-    //Method to deal damage to the AI
-    public void takeDamage(int damage, ActorRef out) {
-        this.health -= damage;
-        BasicCommands.setPlayer2Health(out, this); // **Update UI with new health using BasicCommands**
-
-        if (health <= 0) {
-            // Trigger "Victory" screen and stop AI actions
-            BasicCommands.addPlayer1Notification(out, "YOU WIN!", 5);
-        }
     }
 }

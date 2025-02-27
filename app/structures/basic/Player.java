@@ -11,6 +11,7 @@ public class Player {
 
 	int health;
 	int mana;
+	private Unit avatar;
 //	private int id;
 	
 	public Player() {
@@ -35,16 +36,14 @@ public class Player {
 	public void setMana(int mana) {
 		this.mana = mana;
 	}
-	
-//	public int getId() {
-//        return id;
-//    }
-//
-//    public void setId(int id) {
-//        this.id = id;
-//    }
-  
-    
-    
-	
+
+    public Unit getAvatar() {
+		return avatar;
+    }
+
+	public void setAvatar(Unit avatar) {
+		this.avatar = avatar;
+	}
+
 }
+
