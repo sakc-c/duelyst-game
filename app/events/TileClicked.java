@@ -249,11 +249,6 @@ public class TileClicked implements EventProcessor {
     private void handleAttack(ActorRef out, GameState gameState, Unit target) {
         Unit attacker = gameState.getSelectedUnit();
 
-        // Null checks for attacker and target
-        if (attacker == null || target == null) {
-            throw new IllegalArgumentException("Attacker or target cannot be null");
-        }
-
         Tile attackerTile = gameState.getBoard().getTileForUnit(attacker);
         Tile targetTile = gameState.getBoard().getTileForUnit(target);
 
@@ -283,9 +278,24 @@ public class TileClicked implements EventProcessor {
         if (target.getCurrentHealth() <= 0) {
             gameState.getBoard().removeUnitFromTile(targetTile, out);
             triggerDeathwatchAbilities(out, gameState, target);
+
+            if (target.isAvatar()) {
+                Player winner = attacker.getOwner();
+                //gameState.declareWin(winner);
+            }
             target = null;
         } else {
             BasicCommands.setUnitHealth(out, target, target.getCurrentHealth());
+        }
+
+        if (target!=null && target.isAvatar()) {
+            Player owner = target.getOwner();
+            owner.setHealth(target.getCurrentHealth());
+            if (owner == gameState.getPlayer1()) {
+                BasicCommands.setPlayer1Health(out, owner);
+            } else if (owner == gameState.getPlayer2()) {
+                BasicCommands.setPlayer2Health(out, owner);
+            }
         }
 
         // Mark the attacker as having moved and attacked
@@ -304,19 +314,27 @@ public class TileClicked implements EventProcessor {
         if (target != null) {
             target.counterDamage(attacker);
             if (attacker.getCurrentHealth() <= 0) {
-                System.out.println("Attacker has died. Removing from board...");
                 Tile newAttackerTile = gameState.getBoard().getTileForUnit(attacker);
                 gameState.getBoard().removeUnitFromTile(newAttackerTile, out);
-                System.out.println("Attacker removed from board and UI.");
-
                 triggerDeathwatchAbilities(out, gameState, attacker);
-                System.out.println("Deathwatch abilities triggered.");
 
+                if (attacker.isAvatar()) {
+                    Player winner = target.getOwner();
+                   //gameState.declareWin(winner);
+                }
                 attacker = null;
-                System.out.println("Attacker set to null.");
             } else {
                 BasicCommands.setUnitHealth(out, attacker, attacker.getCurrentHealth());
-                System.out.println("Attacker health updated in UI.");
+            }
+        }
+
+        if (attacker!=null && attacker.isAvatar()) {
+            Player owner = attacker.getOwner();
+            owner.setHealth(attacker.getCurrentHealth());
+            if (owner == gameState.getPlayer1()) {
+                BasicCommands.setPlayer1Health(out, owner);
+            } else if (owner == gameState.getPlayer2()) {
+                BasicCommands.setPlayer2Health(out, owner);
             }
         }
 
