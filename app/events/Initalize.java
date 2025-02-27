@@ -54,12 +54,14 @@ public class Initalize implements EventProcessor {
 		BasicCommands.setUnitHealth(out, player1Avatar, 20);
 		player1Avatar.setCurrentHealth(20);
 		player1Avatar.setAttackPower(2);
+		player1Avatar.setAvatar(true); // Mark as avatar
 
 		Unit player2Avatar = player2.getAvatar();
 		BasicCommands.setUnitAttack(out, player2Avatar, 2);
 		BasicCommands.setUnitHealth(out, player2Avatar, 20);
 		player2Avatar.setCurrentHealth(20);
 		player2Avatar.setAttackPower(2);
+		player2Avatar.setAvatar(true); // Mark as avatar
 
 		try {
 			Thread.sleep(200);
@@ -78,10 +80,13 @@ public class Initalize implements EventProcessor {
 		//set Avatar owners
 		player1.getAvatar().setOwner(player1);
 		player2.getAvatar().setOwner(player2);
+	
+
 
 		// Mark the game as initialized
 		gameState.setGameInitialized(true);
 	}
+	
 }
 
 

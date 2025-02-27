@@ -38,6 +38,7 @@ public class Unit {
 	private boolean isMoved;
 	private boolean isAttacked;
 	private String name;
+	private boolean avatar;
 
 	@JsonIgnore // Exclude the ability field from serialization
 	private Ability ability;
@@ -210,6 +211,15 @@ public class Unit {
 	}
 
 	public Ability getAbility() {return ability;}
+	
+	
+	public boolean isAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(boolean avatar) {
+        this.avatar = avatar;
+    }
 
 //	public int getPlayerId() {
 //        return playerId;
