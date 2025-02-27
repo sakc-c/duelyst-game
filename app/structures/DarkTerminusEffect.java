@@ -48,8 +48,8 @@ public class DarkTerminusEffect implements SpellEffect {
             // Place the Wraithling on the tile
             gameState.getBoard().placeUnitOnTile(wraithling, targetTile, false);
 
-            // Update the UI
-            BasicCommands.drawUnit(out, wraithling, targetTile);
+//            // Update the UI
+//            BasicCommands.drawUnit(out, wraithling, targetTile);
             BasicCommands.setUnitHealth(out, wraithling, 1); // Wraithlings have 1 health
             BasicCommands.setUnitAttack(out, wraithling, 1); // Wraithlings have 1 attack
             BasicCommands.playUnitAnimation(out, wraithling, UnitAnimationType.idle);

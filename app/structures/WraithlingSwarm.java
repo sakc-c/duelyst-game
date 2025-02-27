@@ -5,6 +5,7 @@ import commands.BasicCommands;
 import structures.GameState;
 import structures.basic.Tile;
 import structures.basic.Unit;
+import structures.basic.UnitAnimationType;
 import structures.basic.Card;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
@@ -110,17 +111,27 @@ public class WraithlingSwarm implements SpellEffect {
 	            
 	            return;
 	        }
-
+ 
 	        // Set the owner of the Wraithling
 	        wraithling.setOwner(gameState.getCurrentPlayer());
 
 	        // Place the Wraithling on the vertical tile
 	        gameState.getBoard().placeUnitOnTile(wraithling, verticalTile, false);
-
-	        // Update the UI
-	        BasicCommands.drawUnit(out, wraithling, verticalTile);
+	     // Set the Wraithling's hasMoved and hasAttacked flags to true
+	        wraithling.setHasMoved(true);
+	        wraithling.setHasAttacked(true);
+	        
+	     // Add a small delay to ensure the unit is drawn
+	        try {
+	            Thread.sleep(100); // 100ms delay
+	        } catch (InterruptedException e) {
+	            e.printStackTrace();
+	        }
+	        
 	        BasicCommands.setUnitHealth(out, wraithling, 1); // Wraithlings have 1 health
 	        BasicCommands.setUnitAttack(out, wraithling, 1); // Wraithlings have 1 attack
+	        wraithling.setCurrentHealth(1);
+			wraithling.setAttackPower(1);
 
 	        // Add a delay between summoning each Wraithling for visual effect
 	        try {
@@ -128,6 +139,9 @@ public class WraithlingSwarm implements SpellEffect {
 	        } catch (InterruptedException e) {
 	            e.printStackTrace();
 	        }
+	        
+	     // Play the idle animation
+	        BasicCommands.playUnitAnimation(out, wraithling, UnitAnimationType.idle);
 	    }
 	}
 }
