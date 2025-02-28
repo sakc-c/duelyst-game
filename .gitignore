@@ -1,21 +1,32 @@
-# Ignore compiled class files
-target/**/*.class
+# Ignore system files
+.DS_Store
 
-# Ignore logs
-logs/
-*.log
+# Ignore IDE files
+.classpath
+.project
+.settings/
 
-# Ignore build and dependency cache files
-.project/
-.target/
+# Ignore GitLab CI configuration
+.gitlab-ci.yml
+
+# Ignore Scala build files
+build.sbt
+
+# Ignore sbt build directories
+sbt-dist/
+sbt.bat
+
+# Ignore application-specific files
+app/assets/
+
+# Ignore other project-related files
+conf/
+project/
+
+# Ignore .DS_Store files in all subdirectories
+app/.DS_Store
+app/structures/.DS_Store
+
 .idea/
-*.xml
-
-# Ignore Scala build artifacts
+logs/
 target/
-project/target/
-project/metals.sbt
-project/project/
-
-# Ignore Play Framework assets
-target/streams/
