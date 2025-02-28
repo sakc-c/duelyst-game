@@ -2,11 +2,14 @@ package structures;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
+import structures.basic.Player;
 import structures.basic.Tile;
 import structures.basic.Unit;
+import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -22,33 +25,83 @@ public class Deathwatch implements Ability {
                 int updatedattack = sourceUnit.getAttackPower() + 1;
                 sourceUnit.setAttackPower(updatedattack); // Permanent +1 Attack
                 BasicCommands.setUnitAttack(out,sourceUnit, updatedattack);
+                BasicCommands.addPlayer1Notification(out,"Deathwatch Triggered", 3);
                 break;
             case "Shadow Watcher":
                 sourceUnit.setAttackPower(sourceUnit.getAttackPower() + 1); // Permanent +1 Attack
                 sourceUnit.setCurrentHealth(sourceUnit.getCurrentHealth() + 1); // Permanent +1 Health
+                BasicCommands.setUnitAttack(out,sourceUnit, sourceUnit.getAttackPower());
+                BasicCommands.setUnitHealth(out,sourceUnit,sourceUnit.getAttackPower());
+                BasicCommands.addPlayer1Notification(out,"Deathwatch Triggered", 3);
                 break;
             case "Bloodmoon Priestess": //summon wraithling on randomly selected unoccupied tile
-                List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState,sourceTile);
+                // Get adjacent tiles
+                List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState, sourceTile);
 
-                // Check if there are any adjacent tiles
-                if (!adjacentTiles.isEmpty()) {
-                    // Pick a random tile from the list
-                    Random random = new Random();
-                    Tile randomAdjacentTile = adjacentTiles.get(random.nextInt(adjacentTiles.size()));
-
-                    // Summon a Wraithling on the random adjacent tile
-                    Unit wraithling = BasicObjectBuilders.loadUnit(StaticConfFiles.wraithling, gameState.getNextUnitId(), Unit.class);
-                    wraithling.setOwner(sourceUnit.getOwner()); // Set the owner of the Wraithling
-                    gameState.getBoard().placeUnitOnTile(wraithling, randomAdjacentTile,false);
+                // Filter unoccupied tiles
+                List<Tile> unoccupiedTiles = new ArrayList<>();
+                for (Tile tile : adjacentTiles) {
+                    if (gameState.getBoard().getUnitOnTile(tile) == null) {
+                        unoccupiedTiles.add(tile);
+                    }
                 }
+
+                // If there are unoccupied tiles, summon a Wraithling on a random one
+                if (!unoccupiedTiles.isEmpty()) {
+                    Random random = new Random();
+                    Tile randomTile = unoccupiedTiles.get(random.nextInt(unoccupiedTiles.size()));
+
+                    // Summon a Wraithling
+                    Unit wraithling = BasicObjectBuilders.loadUnit(StaticConfFiles.wraithling, gameState.getNextUnitId(), Unit.class);
+                    wraithling.setOwner(gameState.getCurrentPlayer());
+                    wraithling.setCurrentHealth(1); // Wraithlings have 1 health
+                    wraithling.setAttackPower(1);   // Wraithlings have 1 attack
+                    gameState.getBoard().placeUnitOnTile(gameState,wraithling, randomTile, false);
+
+                    // Add a small delay for place Unit to complete
+                    try {
+                        Thread.sleep(200); // 500ms delay
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Update the UI
+                    BasicCommands.setUnitHealth(out, wraithling, wraithling.getCurrentHealth());
+                    BasicCommands.setUnitAttack(out, wraithling, wraithling.getAttackPower());
+                    BasicCommands.playUnitAnimation(out, wraithling, UnitAnimationType.idle);
+                }
+                BasicCommands.addPlayer1Notification(out,"Deathwatch Triggered", 3);
                 break;
             case "Shadowdancer":
                 // Deal 1 damage to the enemy avatar and heal the player by 1
-                Unit enemyAvatar = gameState.getOpponentPlayer().getAvatar();
-                enemyAvatar.setCurrentHealth(enemyAvatar.getCurrentHealth() - 1);
+                Player opponent = gameState.getOpponentPlayer();
+                Unit enemyAvatar = opponent.getAvatar();
 
-                Unit currentAvatar = gameState.getCurrentPlayerAvatar();
-                gameState.getCurrentPlayer().setHealth(currentAvatar.getCurrentHealth() + 1);
+                int updatedHealth = enemyAvatar.getCurrentHealth() - 1;
+                enemyAvatar.setCurrentHealth(updatedHealth);
+                BasicCommands.setUnitHealth(out, enemyAvatar,updatedHealth);
+
+                opponent.setHealth(updatedHealth);
+                if (opponent == gameState.getPlayer1()) {
+                    BasicCommands.setPlayer1Health(out,opponent);
+                } else if (opponent == gameState.getPlayer2()) {
+                    BasicCommands.setPlayer2Health(out,opponent);
+                }
+
+                Player current = gameState.getCurrentPlayer();
+                Unit currentAvatar = current.getAvatar();
+
+                int updatedHealthCurrent = currentAvatar.getCurrentHealth() + 1;
+                currentAvatar.setCurrentHealth(updatedHealthCurrent);
+                BasicCommands.setUnitHealth(out, currentAvatar,updatedHealthCurrent);
+
+                current.setHealth(updatedHealthCurrent);
+                if (current == gameState.getPlayer1()) {
+                    BasicCommands.setPlayer1Health(out,current);
+                } else if (opponent == gameState.getPlayer2()) {
+                    BasicCommands.setPlayer2Health(out,current);
+                }
+                BasicCommands.addPlayer1Notification(out,"Deathwatch Triggered", 3);
                 break;
         }
     }

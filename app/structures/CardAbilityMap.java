@@ -12,6 +12,9 @@ public class CardAbilityMap {
         abilities.put("Shadow Watcher", new Deathwatch());
         abilities.put("Bloodmoon Priestess", new Deathwatch());
         abilities.put("Shadowdancer", new Deathwatch());
+        abilities.put("Gloom Chaser", new OpeningGambit());
+        abilities.put("Nightsorrow Assassin", new OpeningGambit());
+        abilities.put("Rock Pulveriser", new Provoke());
         // Add more cards and abilities as needed
     }
 

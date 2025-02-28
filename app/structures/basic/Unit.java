@@ -51,7 +51,9 @@ public class Unit {
 
 	@JsonIgnore // Exclude the ability field from serialization
 	private Ability ability;
-	
+
+	private boolean canMove = true;
+	private List<Unit> validAttackTargets = new ArrayList<>(); // List of units this unit can attack
 	
 
 	public String getName() {
@@ -248,14 +250,33 @@ public class Unit {
     public void setMaximumHealth(int health) { this.maxHealth = health;
     }
 
-//	public int getPlayerId() {
-//        return playerId;
-//    }
-//
-//    public void setPlayerId(int playerId) {
-//        this.playerId = playerId;
-//    }
-    
+    public int getMaxHealth() {return this.maxHealth;
+    }
+
+	public void setCanMove(boolean canMove) {
+		this.canMove = canMove;
+	}
+
+	public boolean canMove() {
+		return canMove;
+	}
+
+	public void setValidAttackTargets(List<Unit> validAttackTargets) {
+		this.validAttackTargets = validAttackTargets;
+	}
+
+	public List<Unit> getValidAttackTargets() {
+		return validAttackTargets;
+	}
+
+	public boolean canAttack(Unit target) {
+		// If no restriction, can attack any unit
+		if (validAttackTargets.isEmpty()) {
+			return true;
+		}
+		// Otherwise, can only attack units in the validAttackTargets list
+		return validAttackTargets.contains(target);
+	}
    
 
 }
