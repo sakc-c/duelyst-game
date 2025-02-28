@@ -1,20 +1,15 @@
 package events;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import akka.actor.ActorRef;
+import com.fasterxml.jackson.databind.JsonNode;
 import commands.BasicCommands;
 import structures.*;
 import structures.basic.*;
 import utils.BasicObjectBuilders;
-import structures.HumanPlayer;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static java.lang.Thread.sleep;
 
 /**
  * Indicates that the user has clicked an object on the game canvas, in this case a tile.
@@ -95,19 +90,36 @@ public class TileClicked implements EventProcessor {
 
 
     private void handleCreatureCardClick(ActorRef out, GameState gameState, Tile clickedTile, Card selectedCard) {
-        if (gameState.isHighlightedTile(clickedTile)) { // Check if the clicked tile is valid for summoning
-            summonCreature(out, gameState, clickedTile);
-
-            if (gameState.getCurrentPlayer() instanceof HumanPlayer) {
-                HumanPlayer currentPlayer = (HumanPlayer) gameState.getCurrentPlayer();
-                currentPlayer.playCard(selectedCard, out);
+            // Check if the player has enough mana to play the card before summoning logic
+            if (gameState.getCurrentPlayer().getMana() < selectedCard.getManacost()) {
+                BasicCommands.addPlayer1Notification(out, "Not enough mana to play this card.", 2);
+                gameState.clearAllHighlights(out); // Clear highlights if mana is insufficient
+                gameState.setSelectedCard(null); // Deselect the card
+                return; // Exit the method if there is not enough mana
             }
-            gameState.clearAllHighlights(out); // Clear highlights after summoning
-        } else { // Clicked on an invalid tile, reset selection
-            gameState.clearAllHighlights(out);
-            gameState.setSelectedCard(null);
+
+            // Check if the clicked tile is valid for summoning
+            if (gameState.isHighlightedTile(clickedTile)) {
+                // Summon the creature
+                summonCreature(out, gameState, clickedTile);
+
+                // Deduct mana after summoning
+                gameState.getCurrentPlayer().setMana(gameState.getCurrentPlayer().getMana() - selectedCard.getManacost());
+                BasicCommands.setPlayer1Mana(out, gameState.getCurrentPlayer());
+
+                // Remove the card from the player's hand and update the UI
+                if (gameState.getCurrentPlayer() instanceof HumanPlayer) {
+                    HumanPlayer currentPlayer = (HumanPlayer) gameState.getCurrentPlayer();
+                    currentPlayer.playCard(selectedCard, out);
+                }
+                gameState.clearAllHighlights(out); // Clear highlights after summoning
+            } else {
+                // Notify the player if the tile is invalid
+                BasicCommands.addPlayer1Notification(out, "Invalid tile for summoning.", 2);
+                gameState.clearAllHighlights(out); // Reset selection if the tile is invalid
+                gameState.setSelectedCard(null);
+            }
         }
-    }
 
     private void handleSpellCardClick(ActorRef out, GameState gameState, Tile clickedTile, Unit unitOnTile) {
         Card selectedCard = gameState.getSelectedCard();
@@ -211,6 +223,32 @@ public class TileClicked implements EventProcessor {
 
             }
         }
+    }
+    private boolean isAdjacentToFriendlyUnit(Tile tile, GameState gameState) {
+        Board board = gameState.getBoard();
+        Player currentPlayer = gameState.getCurrentPlayer();
+        int x = tile.getTilex();
+        int y = tile.getTiley();
+
+        int[] dx = {-1, 0, 1, -1, 1, -1, 0, 1};
+        int[] dy = {-1, -1, -1, 0, 0, 1, 1, 1};
+
+        for (int i = 0; i < dx.length; i++) {
+            int adjX = x + dx[i];
+            int adjY = y + dy[i];
+
+            // Check if the adjacent tile is within the board bounds
+            if (adjX >= 0 && adjX < 9 && adjY >= 0 && adjY < 5) {
+                Tile adjacentTile = board.getTile(adjX, adjY);
+                if (adjacentTile != null) {
+                    Unit unitOnTile = board.getUnitOnTile(adjacentTile);
+                    if (unitOnTile != null && unitOnTile.getOwner() == currentPlayer) {
+                        return true; // Found a friendly unit
+                    }
+                }
+            }
+        }
+        return false; // No friendly unit found
     }
 
     private boolean isAdjacentTile(Tile tile1, Tile tile2) {
