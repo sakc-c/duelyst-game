@@ -28,9 +28,6 @@ public class Provoke implements Ability {
                 // Restrict the enemy unit's attacks to the source unit or other units with Provoke
                 enemyUnit.setValidAttackTargets(provokeUnits);
 
-                //Print on UI
-                BasicCommands.addPlayer1Notification(out,"Provoke Triggered", 3);
-
             }
         }
 
