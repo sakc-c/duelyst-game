@@ -53,7 +53,9 @@ public class Unit {
 	private Ability ability;
 
 	private boolean canMove = true;
+	private boolean canAttack= true;
 	private List<Unit> validAttackTargets = new ArrayList<>(); // List of units this unit can attack
+
 	
 
 	public String getName() {
@@ -176,9 +178,6 @@ public class Unit {
 	public int getCurrentHealth() {
 		return currentHealth;
 	}
-	public int getMaxHealth() {
-		return maxHealth;
-	}
 
 	public int setCurrentHealth(int health) {return this.currentHealth = health;}
 
@@ -276,6 +275,14 @@ public class Unit {
 		}
 		// Otherwise, can only attack units in the validAttackTargets list
 		return validAttackTargets.contains(target);
+	}
+	public void setCanAttack(boolean canAttack) {
+		this.canAttack = canAttack;
+	}
+
+	//this getter method
+	public boolean canAttack() {
+		return canAttack;
 	}
    
 

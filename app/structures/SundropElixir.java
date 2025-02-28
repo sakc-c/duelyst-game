@@ -9,31 +9,29 @@ import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 
-public class SundropElixer implements SpellEffect{
+public class SundropElixir implements SpellEffect{
     @Override
     public void highlightValidTargets(ActorRef out, GameState gameState, Tile tile) {
         gameState.clearAllHighlights(out);
-        //iterate through all the tiles on the board to find AI's friendly units
-        for (int x = 0; x < 9; x++) {
-            for (int y = 0; y < 5; y++) {
-                Tile currentTile = gameState.getBoard().getTile(x, y);
-                Unit unit = gameState.getBoard().getUnitOnTile(currentTile);
+        // Get all AI-controlled unit tiles from GameState
+        for (Tile currentTile : gameState.getTilesOccupiedByEnemyPlayer()) {
+            Unit unit = gameState.getBoard().getUnitOnTile(currentTile);
 
-                // Check if the unit belongs to AI and is not at full health
-                if (unit != null && unit.getOwner() == gameState.getOpponentPlayer() && unit.getCurrentHealth() <
-                        unit.getMaxHealth()) {
-                    BasicCommands.drawTile(out, currentTile, 1); // Blue highlight for healing
-                    gameState.addHighlightedTile(currentTile);
-                }
+            // Check if the unit is NOT the AI's avatar and is not at full health
+            if (unit != null && !unit.isAvatar() && unit.getCurrentHealth() < unit.getMaxHealth()) {
+                BasicCommands.drawTile(out, currentTile, 1); // Blue highlight for healing
+                gameState.addHighlightedTile(currentTile);
             }
         }
     }
 
     @Override
-    public void applyEffect (ActorRef out, GameState gameState, Tile targetTile){
+    public void applyEffect (ActorRef out, GameState gameState, Tile targetTile) {
         Unit unit = gameState.getBoard().getUnitOnTile(targetTile);
-        if (unit == null || unit.getOwner() != gameState.getOpponentPlayer() || unit.getCurrentHealth() ==
-                unit.getMaxHealth()) {
+
+        // Exclude AI avatar from healing
+        if (unit == null || unit.isAvatar() || unit.getOwner() != gameState.getOpponentPlayer()
+                || unit.getCurrentHealth() == unit.getMaxHealth()) {
             return;
         }
 
@@ -49,6 +47,5 @@ public class SundropElixer implements SpellEffect{
 
         // Play an idle animation after healing
         BasicCommands.playUnitAnimation(out, unit, UnitAnimationType.idle);
-
     }
 }
