@@ -82,7 +82,7 @@ public class HornOfTheForsaken implements SpellEffect, OnHitEventListener {
             wraithling.setAttackPower(1);   // Wraithlings have 1 attack
 
             // Place the Wraithling on the tile
-            gameState.getBoard().placeUnitOnTile(wraithling, randomTile, false);
+            gameState.getBoard().placeUnitOnTile(gameState,wraithling, randomTile, false);
             
          // Add a small delay for visual effect
             try {

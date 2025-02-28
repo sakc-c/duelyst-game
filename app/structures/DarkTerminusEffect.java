@@ -43,7 +43,7 @@ public class DarkTerminusEffect implements SpellEffect {
             wraithling.setOwner(gameState.getCurrentPlayer());
 
             // Place the Wraithling on the tile
-            gameState.getBoard().placeUnitOnTile(wraithling, targetTile, false);
+            gameState.getBoard().placeUnitOnTile(gameState,wraithling, targetTile, false);
             
             try {
                 Thread.sleep(500); // 500ms delay
