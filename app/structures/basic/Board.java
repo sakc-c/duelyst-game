@@ -2,6 +2,7 @@ package structures.basic;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
+import structures.Ability;
 import structures.GameState;
 import utils.BasicObjectBuilders;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 public class Board {
     private Tile[][] tiles; // 9x5 grid of tiles
     private ActorRef out;
-    private Map<Tile, Unit> unitMap; // Track which unit is on which tile
+    private static Map<Tile, Unit> unitMap; // Track which unit is on which tile
 
     public Board(ActorRef out) {
         this.out = out;
@@ -41,14 +42,13 @@ public class Board {
     }
 
 
-    public void placeUnitOnTile(Unit unit, Tile tile, boolean yFirst) {
+    public void placeUnitOnTile(GameState gameState, Unit unit, Tile tile, boolean yFirst) {
 
         // Remove the unit from its current tile (if any)
        if (unitMap.containsValue(unit)) {
             Tile currentTile = getTileForUnit(unit);
             if (currentTile != null) {
                 unitMap.remove(currentTile); //from the map remove the key-value pair to keep map updated
-                System.out.println("Placing unit " + unit + " on tile " + tile + " (yFirst: " + yFirst + ")");
                 BasicCommands.moveUnitToTile(out, unit, tile, yFirst);
                 BasicCommands.playUnitAnimation(out, unit, UnitAnimationType.move);
                 try {
@@ -59,6 +59,7 @@ public class Board {
                 unitMap.put(tile,unit);
                 unit.setPositionByTile(tile);
                 unit.setHasMoved(true);
+                gameState.triggerProvoke(out);
                 return;
             }
         }
@@ -73,6 +74,7 @@ public class Board {
         }
         unit.setHasAttacked(true);
         unit.setHasMoved(true);
+        gameState.triggerProvoke(out);
     }
 
     public Unit getUnitOnTile(Tile tile) {
@@ -85,7 +87,7 @@ public class Board {
         unitMap.remove(tile); // Remove from map
     }
 
-    public Map<Tile, Unit> getUnitMap() {
+    public static Map<Tile, Unit> getUnitMap() {
         return unitMap;
     }
 
@@ -112,7 +114,34 @@ public class Board {
 
         return adjacentTiles;
     }
-    
-    
 
+
+    public Tile getTileBehind(Tile tile, Boolean isHuman) {
+        int x = tile.getTilex();
+        int y = tile.getTiley();
+
+        // For the human player, "behind" is to the left (x - 1)
+        // For the AI player, "behind" is to the right (x + 1)
+        int behindX = isHuman ? x - 1 : x + 1;
+
+        // Ensure the tile is within the board bounds
+        if (behindX >= 0 && behindX < 9) {
+            return getTile(behindX, y);
+        }
+        return null; // Tile is out of bounds
+
+
+    }
+
+    public List<Unit> getUnitsWithAbility(Class<? extends Ability> abilityClass) {
+        List<Unit> unitsWithAbility = new ArrayList<>();
+        for (Map.Entry<Tile, Unit> entry : unitMap.entrySet()) {
+            Unit unit = entry.getValue();
+            Ability ability = unit.getAbility();
+            if (ability != null && abilityClass.isInstance(ability)) {
+                unitsWithAbility.add(unit);
+            }
+        }
+        return unitsWithAbility;
+    }
 }

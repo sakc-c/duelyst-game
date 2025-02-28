@@ -7,6 +7,7 @@ import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class can be used to hold information about the on-going game.
@@ -45,7 +46,7 @@ public class GameState {
         this.player2.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, getNextUnitId(), Unit.class));
     }
 
-    public void setBoard(ActorRef out, Board board) {
+    public void setBoard(GameState gameState, ActorRef out, Board board) {
         this.board = board;
 
         Unit player1Avatar = player1.getAvatar();
@@ -65,7 +66,8 @@ public class GameState {
         silver.setOwner(player2);
         silver.setCurrentHealth(2);
         silver.setAttackPower(3);
-        board.placeUnitOnTile(silver, board.getTile(3, 2), false);
+        silver.setMaximumHealth(2);
+        board.placeUnitOnTile(gameState,silver, board.getTile(3, 2), false);
         try {
             Thread.sleep(200);
         } catch (InterruptedException e) {
@@ -198,4 +200,23 @@ public class GameState {
     public Player getPlayer2() {
         return player2;
     }
+
+    public void triggerProvoke(ActorRef out) {
+        // Get the unit map from the board
+        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(getBoard().getUnitMap());
+
+        // Iterate through all units on the board
+        for (Map.Entry<Tile, Unit> entry : unitMap.entrySet()) {
+            Unit unit = entry.getValue();
+            Tile tile = entry.getKey();
+
+            // Check if the unit has the OpeningGambit ability
+            if (unit.getAbility() instanceof Provoke) {
+                // Trigger the ability
+                unit.getAbility().triggerAbility(out, this, tile);
+            }
+        }
+    }
+
+
 }

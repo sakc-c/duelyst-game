@@ -13,6 +13,7 @@ import structures.HumanPlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Thread.sleep;
 
@@ -81,7 +82,7 @@ public class TileClicked implements EventProcessor {
         }
         // If no card or unit is selected before, highlight valid tiles for the current player's unit
         else if (unitOnTile != null && unitOnTile.getOwner() == gameState.getCurrentPlayer()) {
-            if (!unitOnTile.hasMoved()) {
+            if (!unitOnTile.hasMoved() && unitOnTile.canMove()) {
                 highlightValidTiles(tilex, tiley, gameState, out);
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);
@@ -126,6 +127,9 @@ public class TileClicked implements EventProcessor {
     }
 
     private void summonCreature(ActorRef out, GameState gameState, Tile tile) {
+        //trigger openingGambit abilities of existing units on the board
+        triggerOpeningGambit(out,gameState);
+
         Card selectedCard = gameState.getSelectedCard();
         Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
         newUnit.setOwner(gameState.getCurrentPlayer());
@@ -136,7 +140,7 @@ public class TileClicked implements EventProcessor {
         newUnit.setName(selectedCard.getName());
 
         //place the unit on the board
-        gameState.getBoard().placeUnitOnTile(newUnit, tile, false);
+        gameState.getBoard().placeUnitOnTile(gameState,newUnit, tile, false);
 
         try {
             Thread.sleep(200);
@@ -203,7 +207,18 @@ public class TileClicked implements EventProcessor {
 
             // Check adjacent tiles of the last tile in this direction
             if (lastTile != null) {
-                highlightValidAttackTiles(lastTile, gameState, out);
+                List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState, lastTile);
+
+                // Highlight adjacent tiles with enemy units
+                for (Tile tile : adjacentTiles) {
+                    Unit unitOnTile = gameState.getBoard().getUnitOnTile(tile);
+
+                    if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
+                        BasicCommands.drawTile(out, tile, 2); // Highlight mode = 2 (Red)
+                        gameState.addHighlightedTile(tile); // Track highlighted tiles
+
+                    }
+                }
             }
         }
 
@@ -217,12 +232,15 @@ public class TileClicked implements EventProcessor {
 
     private void highlightValidAttackTiles(Tile unitTile, GameState gameState, ActorRef out) {
         List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState, unitTile);
+        Unit unit = gameState.getBoard().getUnitOnTile(unitTile);
+
+        unit.getValidAttackTargets();
 
         // Highlight adjacent tiles with enemy units
         for (Tile tile : adjacentTiles) {
             Unit unitOnTile = gameState.getBoard().getUnitOnTile(tile);
 
-            if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
+            if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer() && unit.canAttack(unitOnTile)) {
                 BasicCommands.drawTile(out, tile, 2); // Highlight mode = 2 (Red)
                 gameState.addHighlightedTile(tile); // Track highlighted tiles
 
@@ -259,14 +277,13 @@ public class TileClicked implements EventProcessor {
                 return;
             }
             // Move the attacker to the adjacent tile
-            gameState.getBoard().placeUnitOnTile(attacker, adjacentTile, false);
+            gameState.getBoard().placeUnitOnTile(gameState,attacker, adjacentTile, false);
 
             // Simulate movement delay. 2500 is important to pause the code here before proceeding further which might set attacker to null.
             try {
                 Thread.sleep(2500);
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Thread interrupted during sleep", e);
+                System.out.println("error");
             }
         }
 
@@ -277,7 +294,7 @@ public class TileClicked implements EventProcessor {
         // Check if target is dead
         if (target.getCurrentHealth() <= 0) {
             gameState.getBoard().removeUnitFromTile(targetTile, out);
-            triggerDeathwatchAbilities(out, gameState, target);
+            triggerDeathwatchAbilities(out, gameState);
 
             if (target.isAvatar()) {
                 Player winner = attacker.getOwner();
@@ -312,11 +329,12 @@ public class TileClicked implements EventProcessor {
 
         // Counterattack logic
         if (target != null) {
+            BasicCommands.playUnitAnimation(out, target, UnitAnimationType.attack);
             target.counterDamage(attacker);
             if (attacker.getCurrentHealth() <= 0) {
                 Tile newAttackerTile = gameState.getBoard().getTileForUnit(attacker);
                 gameState.getBoard().removeUnitFromTile(newAttackerTile, out);
-                triggerDeathwatchAbilities(out, gameState, attacker);
+                triggerDeathwatchAbilities(out, gameState);
 
                 if (attacker.isAvatar()) {
                     Player winner = target.getOwner();
@@ -325,6 +343,10 @@ public class TileClicked implements EventProcessor {
                 attacker = null;
             } else {
                 BasicCommands.setUnitHealth(out, attacker, attacker.getCurrentHealth());
+            }
+            // Trigger "On Hit" effect if the attacker is the avatar
+            if (attacker != null && attacker == gameState.getCurrentPlayer().getAvatar()) {
+                attacker.triggerOnHitEffect(out, gameState);
             }
         }
 
@@ -338,17 +360,12 @@ public class TileClicked implements EventProcessor {
             }
         }
 
-        // Trigger "On Hit" effect if the attacker is the avatar
-        if (attacker != null && attacker == gameState.getCurrentPlayer().getAvatar()) {
-            attacker.triggerOnHitEffect(out, gameState);
-        }
-
         gameState.clearAllHighlights(out); // Clear highlights after the attack
     }
 
-    private void triggerDeathwatchAbilities(ActorRef out, GameState gameState, Unit deadUnit) {
+    private void triggerDeathwatchAbilities(ActorRef out, GameState gameState) {
         // Get the unit map from the board
-        Map<Tile, Unit> unitMap = gameState.getBoard().getUnitMap();
+        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(gameState.getBoard().getUnitMap());
 
         // Iterate through all units on the board
         for (Map.Entry<Tile, Unit> entry : unitMap.entrySet()) {
@@ -361,8 +378,30 @@ public class TileClicked implements EventProcessor {
                 unit.getAbility().triggerAbility(out, gameState, tile);
             }
         }
-    } 
-    
+    }
+
+    private void triggerOpeningGambit(ActorRef out, GameState gameState) {
+        // Get the unit map from the board
+        boolean triggered = false;
+        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(gameState.getBoard().getUnitMap());
+
+        // Iterate through all units on the board
+        for (Map.Entry<Tile, Unit> entry : unitMap.entrySet()) {
+            Unit unit = entry.getValue();
+            Tile tile = entry.getKey();
+
+            // Check if the unit has the OpeningGambit ability
+            if (unit.getAbility() instanceof OpeningGambit) {
+                // Trigger the ability
+                unit.getAbility().triggerAbility(out, gameState, tile);
+                triggered = true;
+            }
+        }
+        if (triggered) {
+            BasicCommands.addPlayer1Notification(out,"Opening Gambit Triggered", 3);
+        }
+    }
+
 
     private boolean hasUnitOnXAxis(GameState gameState, Tile startTile) {
         int startX = startTile.getTilex();
@@ -403,10 +442,10 @@ public class TileClicked implements EventProcessor {
 
             // Move y-axis first if there's a unit on the side (x-axis)
             boolean yfirst = hasUnitOnX;
-            gameState.getBoard().placeUnitOnTile(selectedUnit, targetTile, yfirst);
+            gameState.getBoard().placeUnitOnTile(gameState,selectedUnit, targetTile, yfirst);
         } else {
             // Non-diagonal movement, place the unit directly
-            gameState.getBoard().placeUnitOnTile(selectedUnit, targetTile, false);
+            gameState.getBoard().placeUnitOnTile(gameState,selectedUnit, targetTile, false);
         }
 
             // Non-diagonal movement, place the unit directly
