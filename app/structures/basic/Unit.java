@@ -276,11 +276,12 @@ public class Unit {
 		// Otherwise, can only attack units in the validAttackTargets list
 		return validAttackTargets.contains(target);
 	}
+	//setter for canAttack
 	public void setCanAttack(boolean canAttack) {
 		this.canAttack = canAttack;
 	}
 
-	//this getter method
+	// getter for can Attack
 	public boolean canAttack() {
 		return canAttack;
 	}
