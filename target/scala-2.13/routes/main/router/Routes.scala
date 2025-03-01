@@ -1,6 +1,6 @@
 // @GENERATOR:play-routes-compiler
-// @SOURCE:/Users/sakshijashnani/Desktop/SD Team Project/ITSD-DT2023-24-Template/conf/routes
-// @DATE:Fri Feb 07 21:31:19 GMT 2025
+// @SOURCE:C:/Users/rache/Documents/duelystgame/conf/routes
+// @DATE:Fri Feb 28 23:32:37 GMT 2025
 
 package router
 
