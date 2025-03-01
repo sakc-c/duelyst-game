@@ -53,7 +53,9 @@ public class Unit {
 	private Ability ability;
 
 	private boolean canMove = true;
+	private boolean canAttack= true;
 	private List<Unit> validAttackTargets = new ArrayList<>(); // List of units this unit can attack
+
 	
 
 	public String getName() {
@@ -273,6 +275,15 @@ public class Unit {
 		}
 		// Otherwise, can only attack units in the validAttackTargets list
 		return validAttackTargets.contains(target);
+	}
+	//setter for canAttack
+	public void setCanAttack(boolean canAttack) {
+		this.canAttack = canAttack;
+	}
+
+	// getter for can Attack
+	public boolean canAttack() {
+		return canAttack;
 	}
    
 

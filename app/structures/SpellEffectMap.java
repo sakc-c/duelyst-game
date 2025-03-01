@@ -11,6 +11,9 @@ public class SpellEffectMap {
         spells.put("Wraithling Swarm", new WraithlingSwarm());
         spells.put("Dark Terminus", new DarkTerminusEffect());
         spells.put("Horn of the Forsaken", new HornOfTheForsaken());
+        spells.put("Sundrop Elixir", new SundropElixir());
+        spells.put("BeamShock", new BeamShock());
+
         // Add more spell cards and their effects here
     }
 

@@ -53,6 +53,9 @@ public class EndTurnClicked implements EventProcessor{
 		}
 		try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
 
+		// remove stun effect when the Human Player ends their turn
+		if (endTurnPlayer instanceof HumanPlayer) { gameState.removeAllStunnedUnits(); }
+
 		// Switch to the opponent's turn in GameState
 		gameState.nextTurn();
 
