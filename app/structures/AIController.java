@@ -15,14 +15,12 @@ import commands.BasicCommands; // Import the BasicCommands
 import utils.StaticConfFiles;
 
 public class AIController extends Player {
-    private List<Card> hand;  // Cards that the AI can play
     private List<Card> deck;  // All available cards
     private int health; // AI's health
     private ActorRef out;
 
     public AIController(int health, int mana, ActorRef out) {
         super(health, mana);
-        this.hand = new ArrayList<>();
         this.deck = OrderedCardLoader.getPlayer2Cards(1);
         this.health = health;
         this.out = out;
@@ -31,10 +29,6 @@ public class AIController extends Player {
     //Getter method to retrieve health of AI
     public int getHealth() {
         return health;
-    }
-
-    public List<Card> getHand() {
-        return hand;
     }
 
 
@@ -46,9 +40,9 @@ public class AIController extends Player {
 
     // The AI draws a card from its deck and adds it to the hand. No need to show on UI
     public void drawCard() {
-        if (hand.size() < 6 && !deck.isEmpty()) { // Ensure there's space and deck is not empty
+        if (getHand().size() < 6 && !deck.isEmpty()) { // Ensure there's space and deck is not empty
             Card newCard = deck.remove(0); // Draw the first card from the deck
-            hand.add(newCard);
+            getHand().add(newCard);
         }
 
     }
@@ -56,7 +50,7 @@ public class AIController extends Player {
     public void playCard(ActorRef out, GameState gameState) {
         //implement AI logic for playing a card
         // For now, just display the AI's hand for testing
-        super.displayHand(out, hand);
+        super.displayHand(out);
 
 
         // Trigger the "End Turn" event after the AI plays its card
