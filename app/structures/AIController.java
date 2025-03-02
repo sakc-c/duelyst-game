@@ -55,10 +55,12 @@ public class AIController extends Player {
 
     public void playCard(ActorRef out, GameState gameState) {
         //implement AI logic for playing a card
+        // For now, just display the AI's hand for testing
+        super.displayHand(out, hand);
 
 
         // Trigger the "End Turn" event after the AI plays its card
-        EndTurnClicked endTurnEvent = new EndTurnClicked();
-        endTurnEvent.processEvent(out, gameState, null);  // Passing 'null' since the AI isn't clicking, it's automatic
+        //EndTurnClicked endTurnEvent = new EndTurnClicked();
+       // endTurnEvent.processEvent(out, gameState, null);  // Passing 'null' since the AI isn't clicking, it's automatic
     }
 }

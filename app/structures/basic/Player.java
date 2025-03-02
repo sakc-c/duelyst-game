@@ -1,5 +1,10 @@
 package structures.basic;
 
+import akka.actor.ActorRef;
+import commands.BasicCommands;
+
+import java.util.List;
+
 /**
  * A basic representation of of the Player. A player
  * has health and mana.
@@ -75,6 +80,15 @@ public class Player {
     public int getArtifactRobustness() {
         return artifactRobustness;
     }
+
+	// Display the AI's hand on the UI for testing purposes
+	public void displayHand(ActorRef out, List<Card> hand) {
+		for (int i = 0; i < hand.size(); i++) {
+			Card card = hand.get(i);
+			BasicCommands.drawCard(out, card, i+1, 1); // Display the card in the AI's hand (position 1 for player 2)
+			try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
+		}
+	}
 
 }
 
