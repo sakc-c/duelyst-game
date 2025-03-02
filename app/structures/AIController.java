@@ -47,14 +47,39 @@ public class AIController extends Player {
 
     }
 
-    public void playCard(ActorRef out, GameState gameState) {
+    public void playCard(Card card, ActorRef out) {
         //implement AI logic for playing a card
         // For now, just display the AI's hand for testing
-        super.displayHand(out);
+        //super.displayHand(out);
+        if (getHand().contains(card)) {
+            if (getMana() >= card.getManacost()) {
+
+                int removedIndex = getHand().indexOf(card); // Get card position
+
+                // Remove the card from the UI
+                BasicCommands.deleteCard(out, removedIndex + 1);
+
+                // Shift remaining cards left in the UI
+                for (int i = removedIndex + 1; i < getHand().size(); i++) {
+                    Card shiftedCard = getHand().get(i);
+                    BasicCommands.deleteCard(out, i + 1); // Clear old position
+                    BasicCommands.drawCard(out, shiftedCard, i, 0); // Draw at new position
+                }
+                // Remove the card from the hand
+                getHand().remove(card);
+
+                // Ensure the last UI slot is cleared after shifting
+                BasicCommands.deleteCard(out, getHand().size() + 1);
+
+                // Deduct mana
+                setMana(getMana() - card.getManacost());
+                BasicCommands.setPlayer2Mana(out, this);
+            }
 
 
-        // Trigger the "End Turn" event after the AI plays its card
-        //EndTurnClicked endTurnEvent = new EndTurnClicked();
-       // endTurnEvent.processEvent(out, gameState, null);  // Passing 'null' since the AI isn't clicking, it's automatic
+            // Trigger the "End Turn" event after the AI plays its card
+            //EndTurnClicked endTurnEvent = new EndTurnClicked();
+            // endTurnEvent.processEvent(out, gameState, null);  // Passing 'null' since the AI isn't clicking, it's automatic
+        }
     }
 }
