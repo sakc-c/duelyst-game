@@ -48,6 +48,7 @@ public class Unit {
 	private String name;
 	private boolean avatar;
 	private List<OnHitEventListener> onHitEventListeners = new ArrayList<>(); // List of event listeners
+	private boolean canAttack;
 
 	@JsonIgnore // Exclude the ability field from serialization
 	private Ability ability;
@@ -274,6 +275,17 @@ public class Unit {
 		// Otherwise, can only attack units in the validAttackTargets list
 		return validAttackTargets.contains(target);
 	}
-   
+	//setter for canAttack
+	public void setCanAttack(boolean canAttack) {
+		this.canAttack = canAttack;
+	}
+
+	// getter for can Attack
+	public boolean canAttack() {
+		return canAttack;
+	}
+
+
+
 
 }

@@ -27,6 +27,7 @@ public class GameState {
     private Unit selectedUnit;
     private Card selectedCard;
     private int nextUnitId = 2;
+    private Set<Unit> stunnedUnits = new HashSet<>();//to track stunned units
 
 
     public GameState() {
@@ -217,6 +218,26 @@ public class GameState {
             }
         }
     }
+    // this for BeamShock spell card
+    public void addStunnedUnit(Unit unit) {
+        stunnedUnits.add(unit);
+        unit.setCanMove(false);  // Disable movement
+        unit.setCanAttack(false);  // Disable attacks
+    }
+
+    // Remove all stunned units (after AI turn ends)
+    public void removeAllStunnedUnits() {
+        for (Unit unit : stunnedUnits) {
+            unit.setCanMove(true);  // re-enable movement
+            unit.setCanMove(true);  // re-enable attacks
+        }
+        stunnedUnits.clear(); // Clear the list
+    }
+    // Check if a unit is stunned
+    public boolean isUnitStunned(Unit unit) {
+        return stunnedUnits.contains(unit);
+    }
+
 
 
 }
