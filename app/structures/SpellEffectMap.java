@@ -12,6 +12,8 @@ public class SpellEffectMap {
         spells.put("Dark Terminus", new DarkTerminusEffect());
         spells.put("Horn of the Forsaken", new HornOfTheForsaken());
         spells.put("Truestrike", new TrueStrike());
+        spells.put("Sundrop Elixir", new SundropElixir());
+        spells.put("Beamshock", new BeamShock());
         // Add more spell cards and their effects here
     }
 

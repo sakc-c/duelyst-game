@@ -82,11 +82,11 @@ public class TileClicked implements EventProcessor {
         }
         // If no card or unit is selected before, highlight valid tiles for the current player's unit
         else if (unitOnTile != null && unitOnTile.getOwner() == gameState.getCurrentPlayer()) {
-            if (!unitOnTile.hasMoved() && unitOnTile.canMove()) {
+            if (!unitOnTile.hasMoved() && unitOnTile.canMove() && !unitOnTile.isStunned()) {
                 highlightValidTiles(tilex, tiley, gameState, out);
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);
-            } else if (!unitOnTile.hasAttacked()) {
+            } else if (!unitOnTile.hasAttacked() && !unitOnTile.isStunned()) {
                 highlightValidAttackTiles(clickedTile, gameState, out);
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);
