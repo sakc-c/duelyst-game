@@ -47,6 +47,7 @@ public class Unit {
 	private boolean isAttacked;
 	private String name;
 	private boolean avatar;
+	private boolean stunned=false;
 	private List<OnHitEventListener> onHitEventListeners = new ArrayList<>(); // List of event listeners
 
 	@JsonIgnore // Exclude the ability field from serialization
@@ -274,6 +275,11 @@ public class Unit {
 		// Otherwise, can only attack units in the validAttackTargets list
 		return validAttackTargets.contains(target);
 	}
-   
 
+	public boolean isStunned() {
+		return stunned;
+	}
+	public void setStunned(boolean stunned) {
+		this.stunned = stunned;
+	}
 }
