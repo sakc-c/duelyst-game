@@ -58,10 +58,12 @@ public class EndTurnClicked implements EventProcessor{
 
 		// Draw a card for the player ending turn
 		if (endTurnPlayer instanceof HumanPlayer) {
-			((HumanPlayer)endTurnPlayer).drawCard(out);
 			BasicCommands.addPlayer1Notification(out, "AI's Turn", 1);
 			//((AIController)startTurnPlayer).playCard(out, gameState);  // AI plays a card automatically and after that triggers end turn
+			((AIController)startTurnPlayer).displayHand(out);
+			((HumanPlayer)endTurnPlayer).drawCard();
 		} else if (endTurnPlayer instanceof AIController) {
+			((HumanPlayer)startTurnPlayer).displayHand(out);
 			((AIController)endTurnPlayer).drawCard();  // AI draws a card automatically
 			BasicCommands.addPlayer1Notification(out, "Your Turn", 1);
 		}

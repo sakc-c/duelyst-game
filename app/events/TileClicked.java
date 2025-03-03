@@ -99,10 +99,13 @@ public class TileClicked implements EventProcessor {
         if (gameState.isHighlightedTile(clickedTile)) { // Check if the clicked tile is valid for summoning
             summonCreature(out, gameState, clickedTile);
 
-            if (gameState.getCurrentPlayer() instanceof HumanPlayer) {
-                HumanPlayer currentPlayer = (HumanPlayer) gameState.getCurrentPlayer();
-                currentPlayer.playCard(selectedCard, out);
-            }
+                Player currentPlayer = gameState.getCurrentPlayer();
+                if (currentPlayer instanceof HumanPlayer){
+                    ((HumanPlayer)currentPlayer).playCard(selectedCard, out);
+                } else if (currentPlayer instanceof AIController) {
+                    ((AIController)currentPlayer).playCard(selectedCard,out);
+                }
+
             gameState.clearAllHighlights(out); // Clear highlights after summoning
         } else { // Clicked on an invalid tile, reset selection
             gameState.clearAllHighlights(out);

@@ -36,7 +36,7 @@ public class CardClicked implements EventProcessor {
 		
 		
 		int handPosition = message.get("position").asInt();
-		HumanPlayer player = (HumanPlayer) gameState.getCurrentPlayer();
+		Player player =  gameState.getCurrentPlayer();
         List<Card> hand = player.getHand();
         
        
