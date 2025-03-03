@@ -26,7 +26,7 @@ public class HumanPlayer extends Player {
         for (int i = 0; i < 3; i++) {
             drawCard();
         }
-        super.displayHand(out);
+        super.displayHand(out); 
     }
 
     public void playCard(Card card, ActorRef out) {

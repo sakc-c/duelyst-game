@@ -130,7 +130,7 @@ public class Unit {
 	}
 
 	public ImageCorrection getCorrection() {
-		return correction;
+		return correction; 
 	}
 
 	public void setCorrection(ImageCorrection correction) {
@@ -248,7 +248,7 @@ public class Unit {
     }
 
     public int getMaxHealth() {return this.maxHealth;
-    }
+    } 
 
 	public void setCanMove(boolean canMove) {
 		this.canMove = canMove;

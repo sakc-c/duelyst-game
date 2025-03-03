@@ -104,5 +104,5 @@ public class Deathwatch implements Ability {
                 BasicCommands.addPlayer1Notification(out,"Deathwatch Triggered", 3);
                 break;
         }
-    }
+    } 
 }

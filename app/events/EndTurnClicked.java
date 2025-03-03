@@ -67,7 +67,7 @@ public class EndTurnClicked implements EventProcessor{
 			((AIController)endTurnPlayer).drawCard();  // AI draws a card automatically
 			BasicCommands.addPlayer1Notification(out, "Your Turn", 1);
 		}
-	}
+	} 
 
 
 }

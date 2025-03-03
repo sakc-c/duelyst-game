@@ -103,5 +103,5 @@ public class HornOfTheForsaken implements SpellEffect, OnHitEventListener {
                 e.printStackTrace();
             }
         }
-    }
+    } 
 }

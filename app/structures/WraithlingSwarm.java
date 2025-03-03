@@ -135,5 +135,5 @@ public class WraithlingSwarm implements SpellEffect {
 	     // Play the idle animation
 	        BasicCommands.playUnitAnimation(out, wraithling, UnitAnimationType.idle);
 	    }
-	}
+	} 
 }

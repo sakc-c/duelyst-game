@@ -216,7 +216,7 @@ public class GameState {
                 unit.getAbility().triggerAbility(out, this, tile);
             }
         }
-    }
+    } 
 
 
 }
