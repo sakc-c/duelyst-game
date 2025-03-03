@@ -15,6 +15,7 @@ public class CardAbilityMap {
         abilities.put("Gloom Chaser", new OpeningGambit());
         abilities.put("Nightsorrow Assassin", new OpeningGambit());
         abilities.put("Rock Pulveriser", new Provoke());
+        abilities.put("Young Flamewing", new Flying());
         // Add more cards and abilities as needed
     }
 

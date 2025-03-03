@@ -164,6 +164,14 @@ public class TileClicked implements EventProcessor {
     }
 
     private void highlightValidTiles(int tileX, int tileY, GameState gameState, ActorRef out) {
+        Tile tile1 = gameState.getBoard().getTile(tileX, tileY);
+        Unit unit = gameState.getBoard().getUnitOnTile(tile1);
+
+        if (unit.getAbility() instanceof Flying) {
+            unit.getAbility().triggerAbility(out, gameState,tile1);
+            return;
+        }
+
         Tile lastTile = null;
         gameState.clearAllHighlights(out);
 
