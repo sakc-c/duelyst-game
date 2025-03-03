@@ -80,6 +80,12 @@ public class GameState {
     }
 
     public void nextTurn() {
+        for (Map.Entry<Tile, Unit> entry : board.getUnitMap().entrySet()) {
+            Unit unit = entry.getValue();
+            if (unit.getOwner() == getCurrentPlayer() && unit.isStunned()) {
+                unit.setStunned(false);
+            }
+        }
         this.isHumanTurn = !this.isHumanTurn;
         if (!isHumanTurn) {
             this.currentTurn++;
