@@ -94,6 +94,28 @@ public class GameState {
         }
     }
 
+    public void endGame(Player winner, ActorRef out) {
+        // Notify the players that the game has ended
+        BasicCommands.addPlayer1Notification(out, winner == player1 ? "Player 1 Wins!" : "Player 2 Wins!", 5);
+
+        // Disable further moves or actions
+        this.isHumanTurn = false; // Stop the game loop
+        this.gameInitialized = false; // Mark the game as ended
+
+        // Clear all highlights and selections
+        clearAllHighlights(out);
+        setSelectedCard(null);
+        setSelectedUnit(null);
+        setSourceTile(null);
+
+        // Game Over UI
+        BasicCommands.addPlayer1Notification(out, "Game Over!", 5);
+
+        for (Map.Entry<Tile, Unit> entry : Board.getUnitMap().entrySet()) {
+            Unit unit = entry.getValue();
+            unit.setCanMove(false); // Disable movement
+        }
+    }
     public int getCurrentTurn() {
         return currentTurn;
     }
@@ -220,3 +242,4 @@ public class GameState {
 
 
 }
+
