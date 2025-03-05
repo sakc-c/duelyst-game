@@ -9,11 +9,6 @@ import structures.basic.Player;
 public class ZealAbility implements Ability {
 
     @Override
-    public void triggerAbility(ActorRef out, GameState gameState, Tile sourceTile, Tile targetTile) {
-        // Not used for ZealAbility
-    }
-
-    @Override
     public void triggerAbility(ActorRef out, GameState gameState, Tile tile) {
         // This method is called when the avatar takes damage
         Player currentPlayer = gameState.getCurrentPlayer();
@@ -35,8 +30,6 @@ public class ZealAbility implements Ability {
                         System.out.println("Error");
                     }
                 }
-
-                System.out.println("ZealAbility: " + unit.getName() + " attack increased to " + newAttack);
             }
         }
     }
