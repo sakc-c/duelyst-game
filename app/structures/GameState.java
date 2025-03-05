@@ -108,13 +108,38 @@ public class GameState {
         setSelectedUnit(null);
         setSourceTile(null);
 
+        clearPlayerHand(player1,out);
+        clearPlayerHand(player2,out);
+
         // Game Over UI
         BasicCommands.addPlayer1Notification(out, "Game Over!", 5);
 
+        // disable movement of units
         for (Map.Entry<Tile, Unit> entry : Board.getUnitMap().entrySet()) {
             Unit unit = entry.getValue();
             unit.setCanMove(false); // Disable movement
+
         }
+    }
+    // clear a player's hand
+    private void clearPlayerHand(Player player, ActorRef out) {
+        List<Card> hand = player.getHand(); // get player's hand
+        if (hand == null || hand.isEmpty() ) {
+            return;
+        }
+        //clear cards from UI
+        for (int i = 0; i < hand.size(); i++) {
+            // Clear the card from the UI by drawing a null card
+            BasicCommands.drawCard(out, null, i + 1, 0); //clear card from position
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Clear the hand list
+        hand.clear();
     }
     public int getCurrentTurn() {
         return currentTurn;
