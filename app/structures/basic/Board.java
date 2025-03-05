@@ -144,4 +144,10 @@ public class Board {
         }
         return unitsWithAbility;
     }
+
+    public boolean isAdjacentTile(Tile tile1, Tile tile2) {
+        int dx = Math.abs(tile1.getTilex() - tile2.getTilex());
+        int dy = Math.abs(tile1.getTiley() - tile2.getTiley());
+        return dx <= 1 && dy <= 1; // Adjacent if within 1 tile in any direction
+    }
 }

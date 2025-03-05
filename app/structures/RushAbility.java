@@ -19,9 +19,3 @@ public class RushAbility implements Ability {
         }
     }
 }
-
-// SummonCreature
-// // Trigger Rush Ability
-//    if (newUnit.getAbility() instanceof RushAbility) {
-//        newUnit.getAbility().triggerAbility(out, gameState, tile);
-//    }

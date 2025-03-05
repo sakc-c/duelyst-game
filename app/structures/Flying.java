@@ -17,7 +17,7 @@ public class Flying implements Ability {
                 Tile newTile = gameState.getBoard().getTile(x, y);
                 Unit newUnit = gameState.getBoard().getUnitOnTile(newTile);
                 if (newUnit == null && newTile != tile ) {
-                    BasicCommands.drawTile(out, newTile, 1); // Highlight mode = 1
+                    //BasicCommands.drawTile(out, newTile, 1); // Highlight mode = 1
                     gameState.addHighlightedTile(newTile);
                 }
             }

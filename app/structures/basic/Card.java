@@ -1,10 +1,14 @@
 package structures.basic;
 
 
-import structures.Ability;
-import structures.Deathwatch;
+import akka.actor.ActorRef;
+import commands.BasicCommands;
+import structures.*;
+import utils.BasicObjectBuilders;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This is the base representation of a Card which is rendered in the player's hand.
@@ -92,4 +96,41 @@ public class Card {
 
 
 	public String getName() { return this.cardname;}
+
+    public void summonCreature(ActorRef out, GameState gameState, Tile clickedTile) {
+		//trigger openingGambit abilities of existing units on the board
+		gameState.triggerOpeningGambit(out);
+
+		Card selectedCard = gameState.getSelectedCard();
+		Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
+      	if (newUnit != null) {
+			newUnit.setOwner(gameState.getCurrentPlayer());
+		}
+
+		// Assign the ability to the unit
+		Ability ability = CardAbilityMap.getAbilityForCard(selectedCard.getName());
+		newUnit.setAbility(ability);
+		newUnit.setName(selectedCard.getName());
+
+		//place the unit on the board
+		gameState.getBoard().placeUnitOnTile(gameState,newUnit, clickedTile, false);
+
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			System.out.println("Error");
+		}
+
+		//assign health and attack
+		int health = selectedCard.getBigCard().getHealth();
+		int attack = selectedCard.getBigCard().getAttack();
+		newUnit.setAttackPower(attack);
+		newUnit.setCurrentHealth(health);
+		newUnit.setMaximumHealth(health);
+
+		//set on UI
+		BasicCommands.setUnitAttack(out,newUnit,attack);
+		BasicCommands.setUnitHealth(out,newUnit, health);
+    }
+
 }
