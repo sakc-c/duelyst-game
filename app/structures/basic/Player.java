@@ -2,6 +2,7 @@ package structures.basic;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
+import structures.GameState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  * @author Dr. Richard McCreadie
  *
  */
-public class Player {
+public abstract class Player {
 
 	int health;
 	int mana;
@@ -97,6 +98,10 @@ public class Player {
 	public List<Card> getHand() {
 		return hand;
 	}
+
+	public abstract void playCard (Card card, ActorRef out, GameState gameState);
+
+	public abstract void drawCard();
 
 }
 
