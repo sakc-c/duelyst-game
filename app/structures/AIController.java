@@ -1,18 +1,12 @@
 package structures;
 
 import akka.actor.ActorRef;
-import events.EndTurnClicked;
+import commands.BasicCommands;
 import structures.basic.Card;
 import structures.basic.Player;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import structures.basic.Unit;
-import utils.BasicObjectBuilders;
 import utils.OrderedCardLoader;
-import commands.BasicCommands; // Import the BasicCommands
-import utils.StaticConfFiles;
+
+import java.util.List;
 
 public class AIController extends Player {
     private List<Card> deck;  // All available cards
@@ -76,10 +70,31 @@ public class AIController extends Player {
                 BasicCommands.setPlayer2Mana(out, this);
             }
 
+        }
+    }
+        // Method to find and play the card with the lowest mana cost
+        public void playLowestManaCard () {
+            Card lowestManaCard = null;
+            int lowestManaCost = Integer.MAX_VALUE;
+
+            // Iterate through the hand to find the card with the lowest mana cost
+            for (Card card : getHand()) {
+                if (card.getManacost() < lowestManaCost) {
+                    lowestManaCost = card.getManacost();
+                    lowestManaCard = card;
+                }
+            }
+            // Check if a card was found and if the AI has enough mana to play it
+            if (lowestManaCard != null && getMana() >= lowestManaCost) {
+                playCard(lowestManaCard, out); // Assuming playCard is a method to play the card
+            } else {
+                // If no card can be played, notify and end the turn
+                BasicCommands.addPlayer1Notification(out, "The AI cannot play any cards due to insufficient Mana.", 2);
+            }
+        }
+    }
 
             // Trigger the "End Turn" event after the AI plays its card
             //EndTurnClicked endTurnEvent = new EndTurnClicked();
             // endTurnEvent.processEvent(out, gameState, null);  // Passing 'null' since the AI isn't clicking, it's automatic
-        }
-    }
-}
+
