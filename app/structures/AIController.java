@@ -1,6 +1,7 @@
 package structures;
 
 import akka.actor.ActorRef;
+import commands.BasicCommands;
 import events.EndTurnClicked;
 import structures.basic.Card;
 import structures.basic.Player;
@@ -12,8 +13,8 @@ import structures.basic.Tile;
 import structures.basic.Unit;
 import utils.BasicObjectBuilders;
 import utils.OrderedCardLoader;
-import commands.BasicCommands; // Import the BasicCommands
-import utils.StaticConfFiles;
+
+import java.util.List;
 
 
 public class AIController extends Player {
@@ -97,6 +98,7 @@ public class AIController extends Player {
             EndTurnClicked endTurnEvent = new EndTurnClicked();
             endTurnEvent.processEvent(out, gameState, null);  // Trigger the "End Turn" event
         }
+
         // Step 2: Move units
         Unit unitToMove = decideWhichUnitToMove(gameState);
         if (unitToMove != null) {
