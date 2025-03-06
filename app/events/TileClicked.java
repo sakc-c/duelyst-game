@@ -72,8 +72,9 @@ public class TileClicked implements EventProcessor {
                     gameState.handleMovement(clickedTile, selectedUnit);
                     gameState.clearAllHighlights(out);
                 }
-                // Clicked on a non-highlighted tile, reset selection
+                // Clicked on a non-highlighted tile(not valid to move/attack), reset selection
                 else {
+                    BasicCommands.addPlayer1Notification(out, "not a valid tile", 2);
                     gameState.clearAllHighlights(out);
                     gameState.setSourceTile(null);
                     gameState.setSelectedUnit(null);
@@ -83,7 +84,7 @@ public class TileClicked implements EventProcessor {
         // If no card or unit is selected before, highlight valid tiles for the current player's unit
         else if (unitOnTile != null && unitOnTile.getOwner() == gameState.getCurrentPlayer()) {
             if (!unitOnTile.hasMoved() && unitOnTile.canMove() && !unitOnTile.isStunned()) {
-                gameState.getValidMovementTiles (tilex, tiley, gameState, out); //setting in lists in gameState
+                gameState.getValidMovementTiles (tilex, tiley, out); //setting in lists in gameState
                 highlightValidTiles(gameState, out);
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);

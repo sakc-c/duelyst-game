@@ -41,7 +41,7 @@ public class HornOfTheForsaken implements SpellEffect, OnHitEventListener {
         currentPlayer.equipArtifact(3); // Initialize with 3 robustness
 
         // Update the UI to indicate the artifact is equipped
-        BasicCommands.addPlayer1Notification(out, "Horn of the Forsaken equipped!", 2);
+        BasicCommands.addPlayer1Notification(out, "Horn of the Forsaken equipped!", 3);
 
      // Add the "On Hit" effect to the player's avatar
         unit.addOnHitEventListener(this);

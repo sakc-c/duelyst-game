@@ -23,7 +23,14 @@ public class OpeningGambit implements Ability {
             case "Nightsorrow Assassin":
                 triggerNightsorrowAssassinAbility(out, gameState, sourceTile);
                 break;
+            case "Silverguard Squire":
+                triggerSilverguardAbility(out, gameState, sourceTile);
+                break;
         }
+    }
+
+    private void triggerSilverguardAbility(ActorRef out, GameState gameState, Tile sourceTile) {
+
     }
 
     private void triggerGloomChaserAbility(ActorRef out, GameState gameState, Tile sourceTile) {
