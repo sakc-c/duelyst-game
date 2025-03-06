@@ -16,6 +16,12 @@ public class CardAbilityMap {
         abilities.put("Nightsorrow Assassin", new OpeningGambit());
         abilities.put("Rock Pulveriser", new Provoke());
         abilities.put("Young Flamewing", new Flying());
+        abilities.put("Silverguard Knight", new ZealAbility()); //json file gives name provoke but description of Zeal.
+        abilities.put("Saberspine Tiger", new RushAbility());
+        abilities.put("Swamp Entangler", new Provoke());
+        abilities.put("Silverguard Squire", new OpeningGambit());
+        abilities.put("Ironcliffe Guardian", new Provoke());
+
         // Add more cards and abilities as needed
     }
 

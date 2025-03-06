@@ -24,6 +24,7 @@ public class GameState {
     private Board board;
     private List<Tile> highlightedTiles;  // Track blue highlighted tiles
     private List<Tile> redHighlightedTiles; //Track red highlighted tiles
+    private Map<Unit, Unit> provokeEffects; // Maps affected units to the source Provoke unit
     private Tile sourceTile; // Track the source tile for highlighting
     private Unit selectedUnit;
     private Card selectedCard;
@@ -36,10 +37,9 @@ public class GameState {
         this.gameInitialized = false; //needs to be initialised
         this.highlightedTiles = new ArrayList<>();
         this.redHighlightedTiles = new ArrayList<>();
-
+        this.provokeEffects = new HashMap<>();
 
     }
-
 
     public void initializePlayers(HumanPlayer player1, AIController player2) {
         this.player1 = player1;
@@ -62,23 +62,6 @@ public class GameState {
         player2Avatar.setPositionByTile(tile2);
         board.getUnitMap().put(tile2, player2Avatar);
         BasicCommands.drawUnit(out, player2Avatar, tile1);
-
-        //just for testing - remember to remove
-        Unit silver = BasicObjectBuilders.loadUnit(StaticConfFiles.silverguardSquire, getNextUnitId(), Unit.class);
-        silver.setOwner(player2);
-        silver.setCurrentHealth(2);
-        silver.setAttackPower(3);
-        silver.setMaximumHealth(2);
-        board.placeUnitOnTile(gameState, silver, board.getTile(3, 2), false);
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            System.out.println("Error");
-        }
-        BasicCommands.setUnitHealth(out, silver, 2);
-        BasicCommands.setUnitAttack(out, silver, 3);
-
-
     }
 
     public void nextTurn() {
@@ -102,56 +85,18 @@ public class GameState {
         }
     }
 
-     public void endGame(Player winner, ActorRef out) {
-        // Notify the players that the game has ended
-        BasicCommands.addPlayer1Notification(out, winner == player1 ? "Player 1 Wins!" : "Player 2 Wins!", 5);
-
-        // Disable further moves or actions
-        this.isHumanTurn = false; // Stop the game loop
-        this.gameInitialized = false; // Mark the game as ended
-
-        // Clear all highlights and selections
-        clearAllHighlights(out);
-        setSelectedCard(null);
-        setSelectedUnit(null);
-        setSourceTile(null);
-
-        clearPlayerHand(player1,out);
-        clearPlayerHand(player2,out);
-
-        // Game Over UI
-        BasicCommands.addPlayer1Notification(out, "Game Over!", 5);
-
-        // disable movement of units
-        for (Map.Entry<Tile, Unit> entry : Board.getUnitMap().entrySet()) {
-            Unit unit = entry.getValue();
-            unit.setCanMove(false); // Disable movement
-
-        }
+    public Player getPlayer1() {
+        return player1;
     }
-    // clear a player's hand
-    private void clearPlayerHand(Player player, ActorRef out) {
-        List<Card> hand = player.getHand(); // get player's hand
-        if (hand == null || hand.isEmpty() ) {
-            return;
-        }
-        //clear cards from UI
-        for (int i = 0; i < hand.size(); i++) {
-            // Clear the card from the UI by drawing a null card
-            BasicCommands.drawCard(out, null, i + 1, 0); //clear card from position
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
 
-        // Clear the hand list
-        hand.clear();
+    public Player getPlayer2() {
+        return player2;
+    }
 
     public int getCurrentTurn() {
         return currentTurn;
     }
+
 
     public Player getCurrentPlayer() {
         return isHumanTurn ? player1 : player2;
@@ -244,21 +189,12 @@ public class GameState {
         List<Tile> enemyTiles = new ArrayList<>();
         for (Map.Entry<Tile, Unit> entry : board.getUnitMap().entrySet()) {
             Unit unit = entry.getValue();
-            // Check if the unit belongs to the enemy and is not the avatar
+            // Check if the unit belongs to the enemy
             if (unit.getOwner() == getOpponentPlayer()) {
                 enemyTiles.add(entry.getKey());
             }
         }
         return enemyTiles;
-    }
-
-
-    public Player getPlayer1() {
-        return player1;
-    }
-
-    public Player getPlayer2() {
-        return player2;
     }
 
     public void triggerProvoke(ActorRef out) {
@@ -272,23 +208,21 @@ public class GameState {
 
             // Check if the unit has the OpeningGambit ability
             if (unit.getAbility() instanceof Provoke) {
-                // Trigger the ability
                 unit.getAbility().triggerAbility(out, this, tile);
             }
         }
     }
 
-
-    public void getValidMovementTiles(int tileX, int tileY, GameState gameState, ActorRef out) {
-        Tile tile1 = gameState.getBoard().getTile(tileX, tileY);
-        Unit unit = gameState.getBoard().getUnitOnTile(tile1);
+    public void getValidMovementTiles(int tileX, int tileY, ActorRef out) {
+        Tile tile1 = board.getTile(tileX, tileY);
+        Unit unit = board.getUnitOnTile(tile1);
 
         if (unit.getAbility() instanceof Flying) {
-            unit.getAbility().triggerAbility(out, gameState, tile1);
+            unit.getAbility().triggerAbility(out, this, tile1);
         }
 
         Tile lastTile = null;
-        gameState.clearAllHighlights(out);
+        clearAllHighlights(out);
 
         int cardinalRange = 2;
         int diagonalRange = 1;
@@ -311,37 +245,37 @@ public class GameState {
 
                 // Check if the new coordinates are within the board bounds
                 if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
-                    Tile tile = gameState.getBoard().getTile(newX, newY);
-                    Unit unitOnTile = gameState.getBoard().getUnitOnTile(tile);
+                    Tile tile = board.getTile(newX, newY);
+                    Unit unitOnTile = board.getUnitOnTile(tile);
 
                     // If the tile is blocked by another unit
                     if (unitOnTile != null) {
                         // Highlight enemy units in red
-                        if (unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
+                        if (unitOnTile.getOwner() == getOpponentPlayer()) {
                             //BasicCommands.drawTile(out, tile, 2); // Highlight mode = 2 (Red)
-                            gameState.addRedHighlightedTile(tile);
+                            redHighlightedTiles.add(tile);
                         }
                         break; // Stop further movement in this direction
                     } else {
                         // Highlight empty tiles
                         //BasicCommands.drawTile(out, tile, 1); // Highlight mode = 1
-                        gameState.addHighlightedTile(tile);
+                        addHighlightedTile(tile);
                         lastTile = tile; // Track the last valid tile in this direction
                     }
                 }
             }
 
             // Check adjacent tiles of the last tile in this direction
-            if (lastTile != null) {
-                List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState, lastTile);
+            if (lastTile != null && !redHighlightedTiles.contains(lastTile)) {
+                List<Tile> adjacentTiles = board.getAdjacentTiles(this, lastTile);
 
                 // Highlight adjacent tiles with enemy units
                 for (Tile tile : adjacentTiles) {
-                    Unit unitOnTile = gameState.getBoard().getUnitOnTile(tile);
+                    Unit unitOnTile = board.getUnitOnTile(tile);
 
-                    if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer()) {
+                    if (unitOnTile != null && unitOnTile.getOwner() == getOpponentPlayer()) {
                         //BasicCommands.drawTile(out, tile, 2); // Highlight mode = 2 (Red)
-                        gameState.addRedHighlightedTile(tile); // Track highlighted tiles
+                        redHighlightedTiles.add(tile); // Track highlighted tiles
 
                     }
                 }
@@ -353,10 +287,6 @@ public class GameState {
         } catch (InterruptedException e) {
             System.out.println("Error");
         }
-    }
-
-    private void addRedHighlightedTile(Tile tile) {
-        redHighlightedTiles.add(tile);
     }
 
     public List<Tile> getRedHighlightedTiles() {
@@ -376,6 +306,7 @@ public class GameState {
 
             clearAllHighlights(out); // Clear highlights after summoning
         } else { // Clicked on an invalid tile, reset selection
+            BasicCommands.addPlayer1Notification(out, "not a valid tile", 2);
             clearAllHighlights(out);
             setSelectedCard(null);
         }
@@ -449,7 +380,7 @@ public class GameState {
 
             if (unitOnTile != null && unitOnTile.getOwner() == getOpponentPlayer() && unit.canAttack(unitOnTile)) {
                 //BasicCommands.drawTile(out, tile, 2); // Highlight mode = 2 (Red)
-                addRedHighlightedTile(tile); // Track highlighted tiles
+                redHighlightedTiles.add(tile);// Track highlighted tiles
 
             }
         }
@@ -466,98 +397,119 @@ public class GameState {
         return null; // No highlighted adjacent tile found
     }
 
-    //need to refactor handleAttack - does too many things. Can put some methods in Unit and Board?
     public void handleAttack(ActorRef out, Unit target) {
         Unit attacker = getSelectedUnit();
-
         Tile attackerTile = getBoard().getTileForUnit(attacker);
         Tile targetTile = getBoard().getTileForUnit(target);
 
-        // If not adjacent to the target, move to an adjacent tile
+        // Move the attacker to an adjacent tile if necessary
         if (!getBoard().isAdjacentTile(attackerTile, targetTile)) {
-            Tile adjacentTile = findPotentialAdjacentTile(targetTile);
-            // Move the attacker to the adjacent tile
-            getBoard().placeUnitOnTile(this, attacker, adjacentTile, false);
-
-            // Simulate movement delay. 2500 is important to pause the code here before proceeding further which might set attacker to null.
-            try {
-                Thread.sleep(2500);
-            } catch (InterruptedException e) {
-                System.out.println("error");
-            }
+            moveAttackerToAdjacentTile(out, attacker, targetTile);
         }
 
-        // Perform the attack
         BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.attack);
+        try {
+            Thread.sleep(1000); // Delay for animation
+        } catch (InterruptedException e) {
+            System.out.println("Error during movement delay");
+        }
         target.takeDamage(attacker.getAttackPower());
 
-        // Check if target is dead
+        // Handle the states after attack
+        handleUnitStates(out, attacker, target);
+
+        // Clear highlights after the attack
+        clearAllHighlights(out);
+    }
+
+    private void moveAttackerToAdjacentTile(ActorRef out, Unit attacker, Tile targetTile) {
+        Tile adjacentTile = findPotentialAdjacentTile(targetTile);
+        if (adjacentTile != null) {
+            handleMovement(adjacentTile, attacker);
+        }
+
+        // Simulate movement delay
+        try {
+            Thread.sleep(2500); // Delay for animation
+        } catch (InterruptedException e) {
+            System.out.println("Error during movement delay");
+        }
+    }
+
+    private void handleUnitStates(ActorRef out, Unit attacker, Unit target) {
+        attacker.setHasMoved(true);
+        attacker.setHasAttacked(true);
+
         if (target.getCurrentHealth() <= 0) {
-            getBoard().removeUnitFromTile(targetTile, out);
-            triggerDeathwatchAbilities(out);
+            handleUnitDeath(out, target);
 
             if (target.isAvatar()) {
                 Player winner = attacker.getOwner();
-                //gameState.declareWin(winner);
+                endGame(winner, out);
             }
-            target = null;
         } else {
+            handleCounterattack(out, attacker, target);
             BasicCommands.setUnitHealth(out, target, target.getCurrentHealth());
         }
 
         if (target != null && target.isAvatar()) {
-            Player owner = target.getOwner();
-            owner.setHealth(target.getCurrentHealth());
-            if (owner == player1) {
-                BasicCommands.setPlayer1Health(out, owner);
-            } else if (owner == player2) {
-                BasicCommands.setPlayer2Health(out, owner);
-            }
+            handleAvatarHit(out, target);
         }
+    }
 
-        // Mark the attacker as having moved and attacked
-        attacker.setHasMoved(true);
-        attacker.setHasAttacked(true);
-
-        // Simulate delay before counterattack begins
+    private void handleCounterattack(ActorRef out, Unit attacker, Unit target) {
+        BasicCommands.playUnitAnimation(out, target, UnitAnimationType.attack);
         try {
-            Thread.sleep(300);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Thread interrupted during sleep", e);
         }
+        target.counterDamage(attacker);
+        BasicCommands.playUnitAnimation(out, target, UnitAnimationType.idle);
 
-        // Counterattack logic
-        if (target != null) {
-            BasicCommands.playUnitAnimation(out, target, UnitAnimationType.attack);
-            target.counterDamage(attacker);
-            if (attacker.getCurrentHealth() <= 0) {
-                Tile newAttackerTile = getBoard().getTileForUnit(attacker);
-                getBoard().removeUnitFromTile(newAttackerTile, out);
-                triggerDeathwatchAbilities(out);
+        if (attacker.getCurrentHealth() <= 0) {
+            handleUnitDeath(out, attacker);
 
-                if (attacker.isAvatar()) {
-                    Player winner = target.getOwner();
-                    //gameState.declareWin(winner);
-                }
-                attacker = null;
-            } else {
-                BasicCommands.setUnitHealth(out, attacker, attacker.getCurrentHealth());
+            if (attacker.isAvatar()) {
+                Player winner = target.getOwner();
+                endGame(winner, out);
+            }
+        } else {
+            BasicCommands.setUnitHealth(out, attacker, attacker.getCurrentHealth());
+            if (attacker.isAvatar()) {
+                handleAvatarHit(out, attacker);
             }
         }
+    }
 
-        if (attacker != null && attacker.isAvatar()) {
-            attacker.triggerOnHitEffect(out, this); // Trigger "On Hit" effect if the attacker is the avatar
-            Player owner = attacker.getOwner();
-            owner.setHealth(attacker.getCurrentHealth());
-            if (owner == player1) {
-                BasicCommands.setPlayer1Health(out, owner);
-            } else if (owner == player2) {
-                BasicCommands.setPlayer2Health(out, owner);
+    private void handleUnitDeath(ActorRef out, Unit unit) {
+        if (unit.getAbility() instanceof Provoke) {
+            removeProvokeEffect(unit, out);
+        }
+        Tile unitTile = getBoard().getTileForUnit(unit);
+        getBoard().removeUnitFromTile(unitTile, out);
+        triggerDeathwatchAbilities(out);
+    }
+
+    private void handleAvatarHit(ActorRef out, Unit avatar) {
+        avatar.triggerOnHitEffect(out, this); // Trigger on-hit effects
+
+        // Update player health
+        Player owner = avatar.getOwner();
+        if (owner == getCurrentPlayer()) {
+            Ability ability = avatar.getAbility();
+            if (ability != null) {
+                ability.triggerAbility(out, this, getBoard().getTileForUnit(avatar));
             }
         }
+        owner.setHealth(avatar.getCurrentHealth());
 
-        clearAllHighlights(out); // Clear highlights after the attack
+        if (owner == player1) {
+            BasicCommands.setPlayer1Health(out, owner);
+        } else if (owner == player2) {
+            BasicCommands.setPlayer2Health(out, owner);
+        }
     }
 
     private boolean hasUnitOnXAxis(Tile startTile) {
@@ -651,4 +603,87 @@ public class GameState {
             }
         }
     }
+
+    public void endGame(Player winner, ActorRef out) {
+        // Notify the players that the game has ended
+        BasicCommands.addPlayer1Notification(out, winner == player1 ? "Player 1 Wins!" : "Player 2 Wins!", 20);
+
+        // Disable further moves or actions
+        this.isHumanTurn = false; // Stop the game loop
+        this.gameInitialized = false; // Mark the game as ended
+
+        // Clear all highlights and selections
+        clearAllHighlights(out);
+        setSelectedCard(null);
+        setSelectedUnit(null);
+        setSourceTile(null);
+
+        clearPlayerHand(player1, out);
+        clearPlayerHand(player2, out);
+
+        // disable movement of units
+        for (Map.Entry<Tile, Unit> entry : Board.getUnitMap().entrySet()) {
+            Unit unit = entry.getValue();
+            unit.setCanMove(false); // Disable movement
+
+        }
+    }
+
+    // clear a player's hand
+    private void clearPlayerHand(Player player, ActorRef out) {
+        List<Card> hand = player.getHand(); // get player's hand
+        if (hand == null || hand.isEmpty()) {
+            return;
+        }
+        //clear cards from UI
+        for (int i = 0; i < hand.size(); i++) {
+            // Clear the card from the UI by drawing a null card
+            BasicCommands.deleteCard(out, i + 1); //delete card from position
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Clear the hand list
+        hand.clear();
+    }
+
+    public boolean isGameInitialized() {
+        return gameInitialized;
+    }
+
+    public void addProvokeEffect(Unit enemyUnit, Unit sourceUnit) {
+        provokeEffects.put(enemyUnit, sourceUnit);
+    }
+
+    public void removeProvokeEffect(Unit sourceUnit, ActorRef out) {
+        // Iterate through the map to find all units affected by the sourceUnit
+        provokeEffects.entrySet().removeIf(entry -> {
+            Unit affectedUnit = entry.getKey();
+            Unit provokeUnit = entry.getValue();
+
+            // If the sourceUnit is the Provoke unit, reset the affected unit's state
+            if (provokeUnit.equals(sourceUnit)) {
+                BasicCommands.addPlayer1Notification(out, "Provoke disabled", 3);
+                affectedUnit.setCanMove(true); // Allow movement
+                affectedUnit.setValidAttackTargets(null); // Reset attack targets
+                return true; // Remove this entry from the map
+            }
+            return false; // Keep the entry in the map
+        });
+    }
+
+    /**
+     * Checks if a unit is already affected by any Provoke ability.
+     *
+     * @param unit The unit to check.
+     * @return True if the unit is already provoked, false otherwise.
+     */
+    public boolean isUnitProvoked(Unit unit) {
+        return provokeEffects.containsKey(unit);
+    }
+
+
 }

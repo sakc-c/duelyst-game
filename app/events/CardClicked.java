@@ -68,9 +68,9 @@ public class CardClicked implements EventProcessor {
                     spellEffect.highlightValidTargets(out, gameState, null);
                 }
             } else {
-                // If the card is a spell, clear any existing tile highlights
+                BasicCommands.addPlayer1Notification(out, "not enough mana", 2);
                 gameState.clearAllHighlights(out);
-                // Optionally, handle spell-specific logic here (e.g., highlight tiles for spell targeting)
+
             }
         }
     }

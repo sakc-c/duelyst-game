@@ -6,31 +6,40 @@ import structures.basic.Tile;
 import structures.basic.Unit;
 import structures.basic.Player;
 
-public class ZealAbility implements Ability {
+public class ZealAbility implements Ability, OnHitEventListener {
 
     @Override
     public void triggerAbility(ActorRef out, GameState gameState, Tile tile) {
-        // This method is called when the avatar takes damage
+        // This method is called when any unit with this ability is placed on the board
         Player currentPlayer = gameState.getCurrentPlayer();
+        Unit unit = gameState.getBoard().getUnitOnTile(tile);
 
-        // Iterate through all units on the board
-        for (Unit unit : gameState.getBoard().getUnitsWithAbility(ZealAbility.class)) {
-            // Check if the unit belongs to the current player
             if (unit.getOwner() == currentPlayer) {
-                // Increase the unit's attack by +2
-                int newAttack = unit.getAttackPower() + 2;
-                unit.setAttackPower(newAttack);
+                Unit avatar = currentPlayer.getAvatar();
+                avatar.addOnHitEventListener(this);
 
-                // this will update the UI
-                if (out != null) {
-                    BasicCommands.setUnitAttack(out, unit, newAttack);
-                    try {
-                        Thread.sleep(100); // Small delay for UI update
-                    } catch (InterruptedException e) {
-                        System.out.println("Error");
-                    }
-                }
             }
         }
+
+    //this is called when avatar takes hit
+    @Override
+    public void onHit(ActorRef out, GameState gameState) {
+        Player currentPlayer = gameState.getCurrentPlayer();
+
+        // Get all units with ZealAbility for the current player
+        for (Unit unit : gameState.getBoard().getUnitsWithAbility(ZealAbility.class)) {
+            int newAttack = unit.getAttackPower() + 2;
+            unit.setAttackPower(newAttack);
+
+            // Update the UI with new attack power
+            BasicCommands.setUnitAttack(out, unit, newAttack);
+        }
+
+        try {
+            Thread.sleep(100); // Small delay for UI update
+        } catch (InterruptedException e) {
+            System.out.println("Error");
+        }
+
     }
 }

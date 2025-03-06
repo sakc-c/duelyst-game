@@ -24,6 +24,10 @@ public class EndTurnClicked implements EventProcessor{
 
 	@Override
 	public void processEvent(ActorRef out, GameState gameState, JsonNode message) {
+		if (!gameState.isGameInitialized()) {
+			return;
+		}
+
 		if (!gameState.getHighlightedTiles().isEmpty()) {
 			gameState.clearAllHighlights(out);
 		}

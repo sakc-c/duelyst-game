@@ -101,6 +101,7 @@ public class Card {
 		//trigger openingGambit abilities of existing units on the board
 		gameState.triggerOpeningGambit(out);
 
+
 		Card selectedCard = gameState.getSelectedCard();
 		Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
       	if (newUnit != null) {
@@ -121,6 +122,7 @@ public class Card {
 			System.out.println("Error");
 		}
 
+
 		//assign health and attack
 		int health = selectedCard.getBigCard().getHealth();
 		int attack = selectedCard.getBigCard().getAttack();
@@ -131,6 +133,10 @@ public class Card {
 		//set on UI
 		BasicCommands.setUnitAttack(out,newUnit,attack);
 		BasicCommands.setUnitHealth(out,newUnit, health);
+
+		if (newUnit.getAbility() instanceof ZealAbility) {
+			newUnit.getAbility().triggerAbility(out, gameState, clickedTile);
+		}
     }
 
 }
