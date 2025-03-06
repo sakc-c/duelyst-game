@@ -37,9 +37,9 @@ public class EndTurnClicked implements EventProcessor{
 
 		// Set unused mana to 0 for the player who ended turn
 		endTurnPlayer.setMana(0);
-		if (endTurnPlayer instanceof HumanPlayer) {
+		if (endTurnPlayer == gameState.getPlayer1()) {
 			BasicCommands.setPlayer1Mana(out, endTurnPlayer);
-		} else if (endTurnPlayer instanceof AIController) {
+		} else if (endTurnPlayer == gameState.getPlayer2()) {
 			BasicCommands.setPlayer2Mana(out, endTurnPlayer);
 		}
 		try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
@@ -63,13 +63,13 @@ public class EndTurnClicked implements EventProcessor{
 		// Draw a card for the player ending turn
 		if (endTurnPlayer instanceof HumanPlayer) {
 			BasicCommands.addPlayer1Notification(out, "AI's Turn", 1);
+			endTurnPlayer.drawCard();
 			//((AIController)startTurnPlayer).playCard(out, gameState);  // AI plays a card automatically and after that triggers end turn
-			((AIController)startTurnPlayer).displayHand(out);
-			((HumanPlayer)endTurnPlayer).drawCard();
+			startTurnPlayer.displayHand(out);
 		} else if (endTurnPlayer instanceof AIController) {
-			((HumanPlayer)startTurnPlayer).displayHand(out);
-			((AIController)endTurnPlayer).drawCard();  // AI draws a card automatically
 			BasicCommands.addPlayer1Notification(out, "Your Turn", 1);
+			startTurnPlayer.displayHand(out);
+			endTurnPlayer.drawCard();  // AI draws a card automatically
 		}
 	} 
 

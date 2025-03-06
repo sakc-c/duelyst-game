@@ -29,7 +29,7 @@ public class HumanPlayer extends Player {
         super.displayHand(out); 
     }
 
-    public void playCard(Card card, ActorRef out) {
+    public void playCard(Card card, ActorRef out, GameState gameState) {
         if (getHand().contains(card)) {
             if (getMana() >= card.getManacost()) {
 

@@ -298,12 +298,7 @@ public class GameState {
             selectedCard.summonCreature(out, this, clickedTile);
 
             Player currentPlayer = getCurrentPlayer();
-            if (currentPlayer instanceof HumanPlayer) {
-                ((HumanPlayer) currentPlayer).playCard(selectedCard, out);
-            } else if (currentPlayer instanceof AIController) {
-                ((AIController) currentPlayer).playCard(selectedCard, out);
-            }
-
+            currentPlayer.playCard(selectedCard,out,this);
             clearAllHighlights(out); // Clear highlights after summoning
         } else { // Clicked on an invalid tile, reset selection
             BasicCommands.addPlayer1Notification(out, "not a valid tile", 2);
@@ -357,18 +352,14 @@ public class GameState {
             if (spellEffect != null && isHighlightedTile(clickedTile)) {
                 spellEffect.applyEffect(out, this, clickedTile);
                 // Remove the card from the player's hand and update the UI
-                if (getCurrentPlayer() == player1) {
-                    HumanPlayer currentPlayer = (HumanPlayer) getCurrentPlayer();
-                    currentPlayer.playCard(selectedCard, out); // Use playCard to remove the card
-                } else if (getCurrentPlayer() == player2) {
-                    //bhumika to add
-                }
+                Player currentPlayer = getCurrentPlayer();
+                currentPlayer.playCard(selectedCard,out,this);
             }
         }
         clearAllHighlights(out);
     }
 
-    public void getValidAttackTiles(Tile unitTile, ActorRef out) {
+    public void getValidAttackTiles(Tile unitTile) {
         List<Tile> adjacentTiles = getBoard().getAdjacentTiles(this, unitTile);
         Unit unit = getBoard().getUnitOnTile(unitTile);
 

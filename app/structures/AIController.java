@@ -8,6 +8,7 @@ import structures.basic.Player;
 import java.util.ArrayList;
 import java.util.List;
 
+import structures.basic.Tile;
 import structures.basic.Unit;
 import utils.BasicObjectBuilders;
 import utils.OrderedCardLoader;
@@ -47,42 +48,104 @@ public class AIController extends Player {
 
     }
 
-    public void playCard(Card card, ActorRef out) {
-        //implement AI logic for playing a card
-        // For now, just display the AI's hand for testing
-        //super.displayHand(out);
-        if (getHand().contains(card)) {
-            if (getMana() >= card.getManacost()) {
-
-                int removedIndex = getHand().indexOf(card); // Get card position
-
-                // Remove the card from the UI
-                BasicCommands.deleteCard(out, removedIndex + 1);
-
-                // Shift remaining cards left in the UI
-                for (int i = removedIndex + 1; i < getHand().size(); i++) {
-                    Card shiftedCard = getHand().get(i);
-                    BasicCommands.deleteCard(out, i + 1); // Clear old position
-                    BasicCommands.drawCard(out, shiftedCard, i, 0); // Draw at new position
-                }
-                // Remove the card from the hand
-                getHand().remove(card);
-
-                // Ensure the last UI slot is cleared after shifting
-                BasicCommands.deleteCard(out, getHand().size() + 1);
-
-                // Deduct mana
-                setMana(getMana() - card.getManacost());
-                BasicCommands.setPlayer2Mana(out, this);
+    public void playCard(Card card, ActorRef out, GameState gameState) {
+        // Step 1: Play a card (if possible)
+        Card cardToPlay = selectCardToPlay(gameState);
+        if (cardToPlay != null) {
+            Tile summonTile = selectSummonTile(gameState);
+            if (summonTile != null) {
+                this.summonCard(out, cardToPlay, summonTile);
             }
+        }
 
+        // Step 2: Move units
+        Unit unitToMove = decideWhichUnitToMove(gameState);
+        if (unitToMove != null) {
+            //Tile nextTile = logic here
+            //TODO: Bhumika to implement
+            gameState.handleMovement(nextTile,unitToMove);
+        }
 
-            // Trigger the "End Turn" event after the AI plays its card
-            //EndTurnClicked endTurnEvent = new EndTurnClicked();
-            // endTurnEvent.processEvent(out, gameState, null);  // Passing 'null' since the AI isn't clicking, it's automatic
+        // Step 3: Attack with units
+        attackWithUnits(out, gameState);
+
+        // Step 4: Trigger end turn event processor
+    }
+
+    private Unit decideWhichUnitToMove(GameState gameState) {
+        //TODO: Bhumika to implement
+        return null;
+    }
+
+    private void summonCard(ActorRef out, Card cardToPlay, Tile summonTile) {
+        //TODO: Alaa to implement
+    }
+
+    private Tile selectSummonTile(GameState gameState) {
+        return null;
+        //TODO: Alaa to implement
+    }
+
+    private Card selectCardToPlay(GameState gameState) {
+        return null;
+        //TODO: sarah to implement
+    }
+
+    private void attackWithUnits(ActorRef out, GameState gameState) {
+        for (Tile tile : gameState.getTilesOccupiedByCurrentPlayer()) {
+            Unit unit = gameState.getBoard().getUnitOnTile(tile);
+            if (unit == null || unit.hasAttacked()) continue; // Skip if no unit or already attacked
+
+            gameState.getValidAttackTiles(tile); //this methods set attackable tiles in gameStates list
+            List<Tile> attackableTiles = gameState.getRedHighlightedTiles(); // Get attackable tiles for this unit
+            Unit target = selectBestTarget(unit, attackableTiles, gameState);
+
+            if (target != null) {
+                gameState.setSelectedUnit(unit);
+                gameState.handleAttack(out, target); // Ensure attack method has the attacker and target
+            }
         }
     }
 
+    private Unit selectBestTarget(Unit attacker, List<Tile> attackableTiles, GameState gameState) {
+        Unit bestTarget = null;
+        int bestScore = Integer.MIN_VALUE;
+
+        for (Tile attackTile : attackableTiles) {
+            Unit possibleTarget = gameState.getBoard().getUnitOnTile(attackTile);
+            if (possibleTarget == null || !attacker.canAttack(possibleTarget)) continue; // Skip empty or invalid targets
+
+            int score = calculateTargetScore(attacker, possibleTarget);
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestTarget = possibleTarget;
+            }
+        }
+        return bestTarget;
+    }
+
+    private int calculateTargetScore(Unit attacker, Unit target) {
+        int score = 0;
+
+        // Prioritize attacking the opponent's avatar
+        if (target.isAvatar()) {
+            score += 1000;
+        }
+
+        // Prioritize low-health targets to eliminate them quickly
+        score += (10 - target.getCurrentHealth()) * 10;
+
+        // Prioritize high-value targets (e.g., strong attack power)
+        score += target.getAttackPower() * 5;
+
+        // Avoid suicidal attacks where AI unit would die
+        if (attacker.getCurrentHealth() <= target.getAttackPower()) {
+            score -= 1000;
+        }
+
+        return score;
+    }
 
 
 }

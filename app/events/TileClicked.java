@@ -7,13 +7,6 @@ import akka.actor.ActorRef;
 import commands.BasicCommands;
 import structures.*;
 import structures.basic.*;
-import utils.BasicObjectBuilders;
-import structures.HumanPlayer;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Thread.sleep;
 
@@ -89,7 +82,7 @@ public class TileClicked implements EventProcessor {
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);
             } else if (!unitOnTile.hasAttacked() && !unitOnTile.isStunned()) {
-                gameState.getValidAttackTiles(clickedTile, out); //setting in lists in gameState
+                gameState.getValidAttackTiles(clickedTile); //setting in lists in gameState
                 highlightValidAttackTiles(gameState, out);
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);
