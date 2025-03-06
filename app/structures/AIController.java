@@ -15,16 +15,18 @@ import utils.OrderedCardLoader;
 import commands.BasicCommands; // Import the BasicCommands
 import utils.StaticConfFiles;
 
+
 public class AIController extends Player {
     private List<Card> deck;  // All available cards
     private int health; // AI's health
     private ActorRef out;
-
+    private GameState gameState;
     public AIController(int health, int mana, ActorRef out) {
         super(health, mana);
         this.deck = OrderedCardLoader.getPlayer2Cards(1);
         this.health = health;
         this.out = out;
+        this.gameState = new GameState();
     }
 
     //Getter method to retrieve health of AI
@@ -58,6 +60,43 @@ public class AIController extends Player {
             }
         }
 
+       // Method to find and play the card with the lowest mana cost
+        public void selectCardToPlay() {
+            while (true) {
+                Card lowestManaCard = null;
+                int lowestManaCost = Integer.MAX_VALUE;
+
+                // Iterate through the hand to find the card with the lowest mana cost
+                for (Card card : getHand()) {
+                    if (card.getManacost() < lowestManaCost) {
+                        lowestManaCost = card.getManacost();
+                        lowestManaCard = card;
+                    }
+                }
+
+                // Check if a card was found and if the AI has enough mana to play it
+                if (lowestManaCard != null && getMana() >= lowestManaCost) {
+                    playCard(lowestManaCard, out, gameState);
+                    setMana(getMana() - lowestManaCost);
+                    getHand().remove(lowestManaCard);
+
+                    // Add a small delay to simulate the card being summoned
+                    try {
+                        Thread.sleep(1000); // 1 second delay
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    // If no card can be played, notify and break the loop
+                    BasicCommands.addPlayer1Notification(out, "The AI cannot play any more cards due to insufficient Mana.", 2);
+                    break;
+                }
+            }
+
+            // End the turn after playing all possible cards
+            EndTurnClicked endTurnEvent = new EndTurnClicked();
+            endTurnEvent.processEvent(out, gameState, null);  // Trigger the "End Turn" event
+        }
         // Step 2: Move units
         Unit unitToMove = decideWhichUnitToMove(gameState);
         if (unitToMove != null) {
