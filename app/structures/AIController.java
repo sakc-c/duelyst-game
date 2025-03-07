@@ -223,9 +223,6 @@ public class AIController extends Player {
             }
         }
 
-        // End the turn after playing all possible cards
-        EndTurnClicked endTurnEvent = new EndTurnClicked();
-        endTurnEvent.processEvent(out, new GameState(), null);  //Passing 'null' since the AI isn't clicking, it's automatic
 
         // Return null if no card was played
         return null;}
