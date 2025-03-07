@@ -28,7 +28,7 @@ public class EndTurnClicked implements EventProcessor{
 			return;
 		}
 
-		if (!gameState.getHighlightedTiles().isEmpty()) {
+		if (!gameState.getHighlightedTiles().isEmpty() || !gameState.getRedHighlightedTiles().isEmpty()) {
 			gameState.clearAllHighlights(out);
 		}
 		// Get the current player and opponent
@@ -64,11 +64,9 @@ public class EndTurnClicked implements EventProcessor{
 		if (endTurnPlayer instanceof HumanPlayer) {
 			BasicCommands.addPlayer1Notification(out, "AI's Turn", 1);
 			endTurnPlayer.drawCard();
-			//((AIController)startTurnPlayer).playCard(out, gameState);  // AI plays a card automatically and after that triggers end turn
-			startTurnPlayer.displayHand(out);
+			startTurnPlayer.playCard(gameState.getSelectedCard(), out, gameState);  // AI plays a card automatically and after that triggers end turn
 		} else if (endTurnPlayer instanceof AIController) {
 			BasicCommands.addPlayer1Notification(out, "Your Turn", 1);
-			startTurnPlayer.displayHand(out);
 			endTurnPlayer.drawCard();  // AI draws a card automatically
 		}
 	} 

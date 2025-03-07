@@ -47,7 +47,7 @@ public class TileClicked implements EventProcessor {
                 gameState.handleCreatureCardClick(out, clickedTile, selectedCard);
                 gameState.setSelectedCard(null);
             } else {
-                gameState.handleSpellCardClick(out, clickedTile, unitOnTile);
+                gameState.handleSpellCardClick(out, clickedTile);
                 gameState.setSelectedCard(null);
             }
         } else if (sourceTile != null) {

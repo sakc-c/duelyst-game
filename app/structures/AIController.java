@@ -11,6 +11,7 @@ import utils.OrderedCardLoader;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class AIController extends Player {
     private final GameState GameState;
@@ -48,14 +49,8 @@ public class AIController extends Player {
     }
 
     public void playCard(Card card, ActorRef out, GameState gameState) {
-        // Step 1: Play a card (if possible)
-        Card cardToPlay = selectCardToPlay(gameState);
-        if (cardToPlay != null) {
-            Tile summonTile = selectSummonTile(gameState);
-            if (summonTile != null) {
-                this.summonCard(out, cardToPlay, summonTile);
-            }
-        }
+        // Step 1: Play a card and summon if possible
+        selectCardToPlay(gameState);
 
         // Step 2: Move units
         Unit unitToMove = decideWhichUnitToMove(gameState);
@@ -76,6 +71,136 @@ public class AIController extends Player {
         attackWithUnits(out, gameState);
 
         // Step 4: Trigger end turn event processor
+        EndTurnClicked endTurnEvent = new EndTurnClicked();
+        endTurnEvent.processEvent(out, gameState, null);
+
+    }
+
+    // Method to find and play the card with the lowest mana cost
+    public void selectCardToPlay(GameState gameState) {
+        while (true) {
+            Card lowestManaCard = null;
+            int lowestManaCost = Integer.MAX_VALUE;
+
+            // Iterate through the hand to find the card with the lowest mana cost
+            for (Card card : getHand()) {
+                if (card.getManacost() < lowestManaCost) {
+                    lowestManaCost = card.getManacost();
+                    lowestManaCard = card;
+                }
+            }
+            // Check if a card was found and if the AI has enough mana to play it
+            if (lowestManaCard != null && getMana() >= lowestManaCost) {
+                if (lowestManaCard.getIsCreature()) {
+                    Tile summonTile = selectSummonTile(gameState);
+                    if (summonTile != null) {
+                        gameState.handleCreatureCardClick(out,summonTile,lowestManaCard);
+                    }
+                } else {
+                    Tile targetTile = selectTargetTile(lowestManaCard,gameState);
+                    gameState.handleSpellCardClick(out, targetTile);
+                }
+                // Deduct the mana cost
+                setMana(getMana() - lowestManaCost);
+
+                // Remove the card from the hand
+                getHand().remove(lowestManaCard);
+
+                // Add a small delay to simulate the card being summoned
+                try {
+                    Thread.sleep(1000); // 1 second delay
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                // If no card can be played, print for logs and break the loop
+                System.out.println("no card with enough mana");
+                break;
+            }
+        }
+    }
+
+    private Tile selectTargetTile(Card card, GameState gameState) {
+        SpellEffect spellEffect = SpellEffectMap.getSpellEffectForCard(card.getCardname());
+        if (spellEffect != null) {
+            spellEffect.highlightValidTargets(out, gameState, null);
+        }
+
+        List<Tile> validTiles = gameState.getHighlightedTiles();
+        if (validTiles.isEmpty()) {
+            return null; // No valid tiles, return early
+        }
+
+        Random rand = new Random();
+        Tile tile = validTiles.get(rand.nextInt(validTiles.size())); // Now size is guaranteed > 0
+        return tile;
+    }
+
+
+    private Tile selectSummonTile(GameState gameState) {
+        // Highlight valid summon tiles
+        gameState.getValidSummonTile(out);
+        List<Tile> validTiles = gameState.getHighlightedTiles(); // Assuming this method exists
+        if (validTiles.isEmpty()) {
+            return null; // No valid tiles available
+        }
+
+        // Get the AI's avatar and its health
+        Unit aiAvatar = gameState.getPlayer2().getAvatar();
+        int aiHealth = aiAvatar.getCurrentHealth();
+
+        // Get the human player's avatar and its health
+        Unit humanAvatar = gameState.getPlayer1().getAvatar();
+        int humanHealth = humanAvatar.getCurrentHealth();
+
+        // Determine if the AI is in a losing state
+        boolean isLosing = aiHealth < humanHealth * 0.75;
+        Tile summonTile = null;
+
+        // If the AI is losing, prioritize summoning units closer to its own avatar
+        if (isLosing) {
+            Tile aiAvatarTile = gameState.getBoard().getTileForUnit(aiAvatar);
+            if (aiAvatarTile == null) {
+                return null; // AI avatar tile not found
+            }
+
+            int minDistance = Integer.MAX_VALUE;
+            for (Tile tile : validTiles) {
+                int distance = calculateDistance(aiAvatarTile, tile);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    summonTile = tile;
+                }
+            }
+
+        } else {
+            // Otherwise, prioritize summoning closer to the human avatar
+            Tile humanAvatarTile = gameState.getBoard().getTileForUnit(humanAvatar);
+            if (humanAvatarTile == null) {
+                return null; // Human avatar tile not found
+            }
+
+            int minDistance = Integer.MAX_VALUE;
+            for (Tile tile : validTiles) {
+                int distance = calculateDistance(humanAvatarTile, tile);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    summonTile = tile;
+                }
+            }
+        }
+
+        return summonTile; // Return the selected summon tile
+    }
+
+
+      // Helper method to calculate distance between two tiles
+    private int calculateDistance(Tile tile1, Tile tile2) {
+        // Assuming tiles have x and y coordinates
+        int dx = Math.abs(tile1.getTilex() - tile2.getTilex());
+        int dy = Math.abs(tile1.getTiley() - tile2.getTiley());
+        // Use Manhattan distance for simplicity
+        return dx + dy;
     }
 
     private Unit decideWhichUnitToMove(GameState gameState) {
@@ -176,157 +301,6 @@ public class AIController extends Player {
 
         return null; // No valid move found
     }
-
-    private void summonCard(ActorRef out, Card cardToPlay, Tile summonTile, GameState gameState) {
-        // Ensure there is a valid card and summon tile
-        if (cardToPlay == null || summonTile == null) {
-            return; // No card selected or invalid tile
-        }
-
-        // Ensure the tile is empty
-        if (gameState.getBoard().getUnitOnTile(summonTile) != null) {
-            return; // Tile is already occupied
-        }
-
-        // Check if the AI has enough mana
-        Player aiPlayer = gameState.getPlayer2(); 
-        if (aiPlayer.getMana() < cardToPlay.getManacost()) {
-            return; // Not enough mana to summon the unit
-        }
-
-        // Create the unit from the Card
-        Unit summonedUnit = null; 
-        BasicCommands.drawUnit(out, summonedUnit, summonTile);
-
-
-        // Place the unit on the tile
-        gameState.getBoard().placeUnitOnTile(gameState, summonedUnit, summonTile, false); // yFirst = false
-
-        // Trigger unit abilities (if any)
-        if (summonedUnit.getAbility() != null) {
-            summonedUnit.getAbility().triggerAbility(out, gameState, summonTile);
-        }
-
-        // Update the game state
-        aiPlayer.setMana(aiPlayer.getMana() - cardToPlay.getManacost()); // Deduct mana
-
-        // Update the UI
-        BasicCommands.drawUnit(out, summonedUnit, summonTile);
-        BasicCommands.setUnitAttack(out, summonedUnit, summonedUnit.getAttackPower());
-        BasicCommands.setUnitHealth(out, summonedUnit, summonedUnit.getCurrentHealth());
-        BasicCommands.setPlayer2Mana(out, aiPlayer);
-    }
-
-
-
-    private Tile selectSummonTile(GameState gameState) {
-        // Highlight valid summon tiles
-        gameState.getValidSummonTile(out);
-        List<Tile> validTiles = gameState.getHighlightedTiles(); // Assuming this method exists
-        if (validTiles.isEmpty()) {
-            return null; // No valid tiles available
-        }
-
-        // Get the AI's avatar and its health
-        Unit aiAvatar = gameState.getPlayer2().getAvatar();
-        int aiHealth = aiAvatar.getCurrentHealth();
-
-        // Get the human player's avatar and its health
-        Unit humanAvatar = gameState.getPlayer1().getAvatar();
-        int humanHealth = humanAvatar.getCurrentHealth();
-
-        // Determine if the AI is in a losing state
-        boolean isLosing = aiHealth < humanHealth * 0.75;
-        Tile summonTile = null;
-
-        // If the AI is losing, prioritize summoning units closer to its own avatar
-        if (isLosing) {
-            Tile aiAvatarTile = gameState.getBoard().getTileForUnit(aiAvatar);
-            if (aiAvatarTile == null) {
-                return null; // AI avatar tile not found
-            }
-
-            int minDistance = Integer.MAX_VALUE;
-            for (Tile tile : validTiles) {
-                int distance = calculateDistance(aiAvatarTile, tile);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    summonTile = tile;
-                }
-            }
-
-        } else {
-            // Otherwise, prioritize summoning closer to the human avatar
-            Tile humanAvatarTile = gameState.getBoard().getTileForUnit(humanAvatar);
-            if (humanAvatarTile == null) {
-                return null; // Human avatar tile not found
-            }
-
-            int minDistance = Integer.MAX_VALUE;
-            for (Tile tile : validTiles) {
-                int distance = calculateDistance(humanAvatarTile, tile);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    summonTile = tile;
-                }
-            }
-        }
-
-        return summonTile; // Return the selected summon tile
-    }
-
-
-      // Helper method to calculate distance between two tiles
-    private int calculateDistance(Tile tile1, Tile tile2) {
-        // Assuming tiles have x and y coordinates
-        int dx = Math.abs(tile1.getTilex() - tile2.getTilex());
-        int dy = Math.abs(tile1.getTiley() - tile2.getTiley());
-        // Use Manhattan distance for simplicity
-        return dx + dy;
-    }
-
-
-
-// Method to find and play the card with the lowest mana cost
-    public Card selectCardToPlay() {
-        while (true) {
-            Card lowestManaCard = null;
-            int lowestManaCost = Integer.MAX_VALUE;
-
-            // Iterate through the hand to find the card with the lowest mana cost
-            for (Card card : getHand()) {
-                if (card.getManacost() < lowestManaCost) {
-                    lowestManaCost = card.getManacost();
-                    lowestManaCard = card;
-                }
-            }
-            // Check if a card was found and if the AI has enough mana to play it
-            if (lowestManaCard != null && getMana() >= lowestManaCost) {
-                // Play the card
-                playCard(lowestManaCard, out, new GameState());
-
-                // Deduct the mana cost
-                setMana(getMana() - lowestManaCost);
-
-                // Remove the card from the hand
-                getHand().remove(lowestManaCard);
-
-                // Add a small delay to simulate the card being summoned
-                try {
-                    Thread.sleep(1000); // 1 second delay
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                // If no card can be played, notify and break the loop
-                BasicCommands.addPlayer1Notification(out, "The AI cannot play any more cards due to insufficient Mana.", 2);
-                break;
-            }
-        }
-
-
-        // Return null if no card was played
-        return null;}
 
 
     private void attackWithUnits(ActorRef out, GameState gameState) {

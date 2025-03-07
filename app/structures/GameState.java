@@ -76,6 +76,9 @@ public class GameState {
             this.currentTurn++;
         }
         resetHasMovedFlags();
+        setSourceTile(null);
+        setSelectedCard(null);
+        setSelectedUnit(null);
     }
 
     public void resetHasMovedFlags() {
@@ -295,10 +298,16 @@ public class GameState {
 
     public void handleCreatureCardClick(ActorRef out, Tile clickedTile, Card selectedCard) {
         if (isHighlightedTile(clickedTile)) { // Check if the clicked tile is valid for summoning
+            if (selectedCard == null) {
+                System.out.println("Error: No card selected for summoning!");
+                return;
+            }
             selectedCard.summonCreature(out, this, clickedTile);
 
             Player currentPlayer = getCurrentPlayer();
-            currentPlayer.playCard(selectedCard,out,this);
+            if (currentPlayer instanceof HumanPlayer) {
+                currentPlayer.playCard(selectedCard, out, this);
+            }
             clearAllHighlights(out); // Clear highlights after summoning
         } else { // Clicked on an invalid tile, reset selection
             BasicCommands.addPlayer1Notification(out, "not a valid tile", 2);
@@ -346,14 +355,16 @@ public class GameState {
         }
     }
 
-    public void handleSpellCardClick(ActorRef out, Tile clickedTile, Unit unitOnTile) {
+    public void handleSpellCardClick(ActorRef out, Tile clickedTile) {
         if (selectedCard != null && !selectedCard.isCreature()) {
             SpellEffect spellEffect = SpellEffectMap.getSpellEffectForCard(selectedCard.getCardname());
             if (spellEffect != null && isHighlightedTile(clickedTile)) {
                 spellEffect.applyEffect(out, this, clickedTile);
                 // Remove the card from the player's hand and update the UI
                 Player currentPlayer = getCurrentPlayer();
-                currentPlayer.playCard(selectedCard,out,this);
+                if (currentPlayer instanceof HumanPlayer) {
+                    currentPlayer.playCard(selectedCard, out, this);
+                }
             }
         }
         clearAllHighlights(out);

@@ -101,8 +101,11 @@ public class Card {
 		//trigger openingGambit abilities of existing units on the board
 		gameState.triggerOpeningGambit(out);
 
-
 		Card selectedCard = gameState.getSelectedCard();
+		if (selectedCard == null) {
+			System.out.println("Error: No card selected for summoning!");
+			return;
+		}
 		Unit newUnit = BasicObjectBuilders.loadUnit(selectedCard.getUnitConfig(), gameState.getNextUnitId(), Unit.class);
       	if (newUnit != null) {
 			newUnit.setOwner(gameState.getCurrentPlayer());

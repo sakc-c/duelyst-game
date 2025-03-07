@@ -102,6 +102,5 @@ public abstract class Player {
 	public abstract void playCard (Card card, ActorRef out, GameState gameState);
 
 	public abstract void drawCard();
-
 }
 
