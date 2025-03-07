@@ -64,8 +64,8 @@ public class HumanPlayer extends Player {
                 Card newCard = deck.remove(0);  // Get and remove the first card from the deck
                 getHand().add(newCard); // Add card to the player's hand
 
-               // int nextIndex = hand.size(); // Correct UI index
-                //BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
+                int nextIndex = getHand().size(); // Correct UI index
+                BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
             }
         }
     }

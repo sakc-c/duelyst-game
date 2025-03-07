@@ -12,6 +12,7 @@ import utils.OrderedCardLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class AIController extends Player {
     private final GameState GameState;
@@ -76,48 +77,89 @@ public class AIController extends Player {
 
     }
 
-    // Method to find and play the card with the lowest mana cost
     public void selectCardToPlay(GameState gameState) {
-        while (true) {
+        System.out.println("AI's Hand: " + getHand().stream().map(Card::getCardname).collect(Collectors.toList()));
+        System.out.println("AI's Mana: " + getMana());
+
+        boolean cardPlayed;
+        do {
+            cardPlayed = false; // Reset the flag at the start of each iteration
             Card lowestManaCard = null;
             int lowestManaCost = Integer.MAX_VALUE;
 
             // Iterate through the hand to find the card with the lowest mana cost
             for (Card card : getHand()) {
-                if (card.getManacost() < lowestManaCost) {
+                System.out.println("Checking card: " + card.getCardname() + " (Mana Cost: " + card.getManacost() + ")");
+                if (card.getManacost() < lowestManaCost && card.getManacost() <= getMana()) {
+                    // For Sundrop Elixir, check if there are valid targets
+                    if (card.getCardname().equals("Sundrop Elixir")) {
+                        boolean hasValidTarget = false;
+                        for (Tile tile : gameState.getTilesOccupiedByCurrentPlayer()) {
+                            Unit unit = gameState.getBoard().getUnitOnTile(tile);
+                            if (unit != null && !unit.isAvatar() && unit.getCurrentHealth() < unit.getMaxHealth()) {
+                                hasValidTarget = true;
+                                break;
+                            }
+                        }
+                        if (!hasValidTarget) {
+                            System.out.println("Skipping Sundrop Elixir: No valid targets.");
+                            continue; // Skip this card if no valid targets
+                        }
+                    }
+
                     lowestManaCost = card.getManacost();
                     lowestManaCard = card;
                 }
             }
-            // Check if a card was found and if the AI has enough mana to play it
-            if (lowestManaCard != null && getMana() >= lowestManaCost) {
+
+            if (lowestManaCard != null) {
+                System.out.println("Selected card: " + lowestManaCard.getCardname() + " (Mana Cost: " + lowestManaCost + ")");
+
                 if (lowestManaCard.getIsCreature()) {
                     Tile summonTile = selectSummonTile(gameState);
                     if (summonTile != null) {
-                        gameState.handleCreatureCardClick(out,summonTile,lowestManaCard);
+                        // Set the selected card
+                        gameState.setSelectedCard(lowestManaCard);
+
+                        System.out.println("Summoning unit: " + lowestManaCard.getCardname() +
+                                " at tile (" + summonTile.getTilex() + "," + summonTile.getTiley() + ")");
+                        gameState.handleCreatureCardClick(out, summonTile, lowestManaCard);
+
+                        System.out.println("Deducting " + lowestManaCost + " mana. Remaining mana: " + (getMana() - lowestManaCost));
+                        setMana(getMana() - lowestManaCost);
+                        getHand().remove(lowestManaCard);
+
+                        cardPlayed = true; // A card was successfully played
+                    } else {
+                        System.out.println("No valid summon tile found for card: " + lowestManaCard.getCardname());
                     }
                 } else {
-                    Tile targetTile = selectTargetTile(lowestManaCard,gameState);
-                    gameState.handleSpellCardClick(out, targetTile);
+                    Tile targetTile = selectTargetTile(lowestManaCard, gameState);
+                    if (targetTile != null) {
+                        System.out.println("Playing spell: " + lowestManaCard.getCardname() +
+                                " at tile (" + targetTile.getTilex() + "," + targetTile.getTiley() + ")");
+                        gameState.handleSpellCardClick(out, targetTile);
+
+                        System.out.println("Deducting " + lowestManaCost + " mana. Remaining mana: " + (getMana() - lowestManaCost));
+                        setMana(getMana() - lowestManaCost);
+                        getHand().remove(lowestManaCard);
+
+                        cardPlayed = true; // A card was successfully played
+                    } else {
+                        System.out.println("No valid target tile found for spell: " + lowestManaCard.getCardname());
+                    }
                 }
-                // Deduct the mana cost
-                setMana(getMana() - lowestManaCost);
 
-                // Remove the card from the hand
-                getHand().remove(lowestManaCard);
-
-                // Add a small delay to simulate the card being summoned
+                // Add a small delay to simulate the card being played
                 try {
                     Thread.sleep(1000); // 1 second delay
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             } else {
-                // If no card can be played, print for logs and break the loop
-                System.out.println("no card with enough mana");
-                break;
+                System.out.println("No card with enough mana.");
             }
-        }
+        } while (cardPlayed); // Continue only if a card was played in the current iteration
     }
 
     private Tile selectTargetTile(Card card, GameState gameState) {
@@ -308,6 +350,12 @@ public class AIController extends Player {
             Unit unit = gameState.getBoard().getUnitOnTile(tile);
             if (unit == null || unit.hasAttacked()) continue; // Skip if no unit or already attacked
 
+            // Skip if the unit has already attacked
+            if (unit.hasAttacked()) {
+                System.out.println("Skipping unit: " + unit.getName() + " (already attacked)");
+                continue;
+            }
+
             gameState.getValidAttackTiles(tile); //this methods set attackable tiles in gameStates list
             List<Tile> attackableTiles = gameState.getRedHighlightedTiles(); // Get attackable tiles for this unit
             Unit target = selectBestTarget(unit, attackableTiles, gameState);
@@ -315,6 +363,8 @@ public class AIController extends Player {
             if (target != null) {
                 gameState.setSelectedUnit(unit);
                 gameState.handleAttack(out, target); // Ensure attack method has the attacker and target
+            } else {
+                System.out.println("No valid target found for unit: " + unit.getName());
             }
         }
     }
