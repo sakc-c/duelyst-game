@@ -61,9 +61,16 @@ public class AIController extends Player {
         // Step 2: Move units
         Unit unitToMove = decideWhichUnitToMove(gameState);
         if (unitToMove != null) {
-            //Tile nextTile = logic here
-            //TODO: Bhumika to implement
-            gameState.handleMovement(nextTile,unitToMove);
+            Tile currentTile = gameState.getBoard().getTileForUnit(unitToMove);
+            boolean isLosing = gameState.getPlayer2().getAvatar().getCurrentHealth() <
+                    gameState.getPlayer1().getAvatar().getCurrentHealth() * 0.75;
+            Tile nextTile = calculateBestMove(currentTile, gameState.getPlayer1().getAvatar(), gameState, isLosing);
+
+            if (nextTile != null) {
+                gameState.setSelectedUnit(unitToMove); // Set the selected unit
+                gameState.setSourceTile(currentTile); // Set the source tile
+                gameState.handleMovement(nextTile, unitToMove);
+            }
         }
 
         // Step 3: Attack with units
@@ -73,8 +80,102 @@ public class AIController extends Player {
     }
 
     private Unit decideWhichUnitToMove(GameState gameState) {
-        //TODO: Bhumika to implement
-        return null;
+        // Get the human player's avatar
+        Unit humanAvatar = gameState.getPlayer1().getAvatar();
+        Tile humanAvatarTile = gameState.getBoard().getTileForUnit(humanAvatar);
+        int humanHealth = humanAvatar.getCurrentHealth();
+
+        // Get the AI's avatar and its health
+        Unit aiAvatar = gameState.getPlayer2().getAvatar();
+        int aiHealth = aiAvatar.getCurrentHealth();
+
+        // Determine if the AI is in a losing state (e.g., AI has significantly lower health)
+        boolean isLosing = aiHealth < humanHealth * 0.75; // AI has less than 75% of human's health
+
+        // Get all units controlled by the AI
+        List<Unit> aiUnits = new ArrayList<>();
+        for (Tile tile : gameState.getTilesOccupiedByCurrentPlayer()) {
+            Unit unit = gameState.getBoard().getUnitOnTile(tile);
+            if (unit != null && !unit.hasMoved()) {
+                aiUnits.add(unit);
+            }
+        }
+
+        // Sort units by strength (attack power) in descending order
+        aiUnits.sort((unit1, unit2) -> Integer.compare(unit2.getAttackPower(), unit1.getAttackPower()));
+
+        // Prioritize moving the AI avatar if it's in a losing state
+        if (isLosing && !aiAvatar.hasMoved()) {
+            Tile aiAvatarTile = gameState.getBoard().getTileForUnit(aiAvatar);
+            Tile bestMove = calculateBestMove(aiAvatarTile, humanAvatar, gameState, true); // Move away from human avatar
+            if (bestMove != null) {
+                gameState.setSelectedUnit(aiAvatar);
+                return aiAvatar;
+            }
+        }
+
+        // Otherwise, move other units towards the human avatar
+        for (Unit unit : aiUnits) {
+            Tile currentTile = gameState.getBoard().getTileForUnit(unit);
+            Tile bestMove = calculateBestMove(currentTile, humanAvatar, gameState, false); // Move towards human avatar
+            if (bestMove != null) {
+                gameState.setSelectedUnit(unit);
+                return unit;
+            }
+        }
+
+        return null; // No unit to move
+    }
+
+    private Tile calculateBestMove(Tile currentTile, Unit targetUnit, GameState gameState, boolean moveAway) {
+        int currentX = currentTile.getTilex();
+        int currentY = currentTile.getTiley();
+        Tile targetTile = gameState.getBoard().getTileForUnit(targetUnit);
+        int targetX = targetTile.getTilex();
+        int targetY = targetTile.getTiley();
+
+        // Calculate the direction to move
+        int dx = Integer.compare(targetX, currentX);
+        int dy = Integer.compare(targetY, currentY);
+
+        // If moving away, reverse the direction
+        if (moveAway) {
+            dx = -dx;
+            dy = -dy;
+        }
+
+        // Calculate the new position
+        int newX = currentX + dx;
+        int newY = currentY + dy;
+
+        // Check if the new position is within bounds and not occupied
+        if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
+            Tile newTile = gameState.getBoard().getTile(newX, newY);
+            if (gameState.getBoard().getUnitOnTile(newTile) == null) {
+                return newTile;
+            }
+        }
+
+        // If the direct move is not possible, try adjacent tiles
+        int[][] directions = {
+                {-1, 0}, {1, 0}, // Left, Right
+                {0, -1}, {0, 1}, // Up, Down
+                {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
+        };
+
+        for (int[] dir : directions) {
+            int adjX = currentX + dir[0];
+            int adjY = currentY + dir[1];
+
+            if (adjX >= 0 && adjX < 9 && adjY >= 0 && adjY < 5) {
+                Tile adjTile = gameState.getBoard().getTile(adjX, adjY);
+                if (gameState.getBoard().getUnitOnTile(adjTile) == null) {
+                    return adjTile;
+                }
+            }
+        }
+
+        return null; // No valid move found
     }
 
     private void summonCard(ActorRef out, Card cardToPlay, Tile summonTile) {

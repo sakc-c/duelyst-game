@@ -165,29 +165,29 @@ public class CommandDemo {
 
 		// setPlayer1Health
 		BasicCommands.addPlayer1Notification(out, "setPlayer1Health", 2);
-		Player humanPlayer = new Player(20, 0);
-		BasicCommands.setPlayer1Health(out, humanPlayer);
+		//Player humanPlayer = new Player(20, 0);
+		//BasicCommands.setPlayer1Health(out, humanPlayer);
 		try {Thread.sleep(2000);} catch (InterruptedException e) {e.printStackTrace();}
 
 		// setPlayer1Health
 		BasicCommands.addPlayer1Notification(out, "setPlayer2Health", 2);
-		Player aiPlayer = new Player(20, 0);
-		BasicCommands.setPlayer2Health(out, aiPlayer);
+		//Player aiPlayer = new Player(20, 0);
+		//BasicCommands.setPlayer2Health(out, aiPlayer);
 		try {Thread.sleep(2000);} catch (InterruptedException e) {e.printStackTrace();}
 
 		// Mana
 		for (int m = 0; m<10; m++) {
 			BasicCommands.addPlayer1Notification(out, "setPlayer1Mana ("+m+")", 1);
-			humanPlayer.setMana(m);
-			BasicCommands.setPlayer1Mana(out, humanPlayer);
+			//humanPlayer.setMana(m);
+			//BasicCommands.setPlayer1Mana(out, humanPlayer);
 			try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
 		}
 
 		// Mana
 		for (int m = 0; m<10; m++) {
 			BasicCommands.addPlayer1Notification(out, "setPlayer2Mana ("+m+")", 1);
-			aiPlayer.setMana(m);
-			BasicCommands.setPlayer2Mana(out, aiPlayer);
+			//aiPlayer.setMana(m);
+			//BasicCommands.setPlayer2Mana(out, aiPlayer);
 			try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
 		}
 		
