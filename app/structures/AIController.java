@@ -67,6 +67,8 @@ public class AIController extends Player {
             Tile nextTile = calculateBestMove(currentTile, gameState.getPlayer1().getAvatar(), gameState, isLosing);
 
             if (nextTile != null) {
+                gameState.setSelectedUnit(unitToMove); // Set the selected unit
+                gameState.setSourceTile(currentTile); // Set the source tile
                 gameState.handleMovement(nextTile, unitToMove);
             }
         }
