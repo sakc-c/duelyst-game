@@ -177,16 +177,117 @@ public class AIController extends Player {
         return null; // No valid move found
     }
 
-    private void summonCard(ActorRef out, Card cardToPlay, Tile summonTile) {
-        //TODO: Alaa to implement
+    private void summonCard(ActorRef out, Card cardToPlay, Tile summonTile, GameState gameState) {
+        // Ensure there is a valid card and summon tile
+        if (cardToPlay == null || summonTile == null) {
+            return; // No card selected or invalid tile
+        }
+
+        // Ensure the tile is empty
+        if (gameState.getBoard().getUnitOnTile(summonTile) != null) {
+            return; // Tile is already occupied
+        }
+
+        // Check if the AI has enough mana
+        Player aiPlayer = gameState.getPlayer2(); 
+        if (aiPlayer.getMana() < cardToPlay.getManacost()) {
+            return; // Not enough mana to summon the unit
+        }
+
+        // Create the unit from the Card
+        Unit summonedUnit = null; 
+        BasicCommands.drawUnit(out, summonedUnit, summonTile);
+
+
+        // Place the unit on the tile
+        gameState.getBoard().placeUnitOnTile(gameState, summonedUnit, summonTile, false); // yFirst = false
+
+        // Trigger unit abilities (if any)
+        if (summonedUnit.getAbility() != null) {
+            summonedUnit.getAbility().triggerAbility(out, gameState, summonTile);
+        }
+
+        // Update the game state
+        aiPlayer.setMana(aiPlayer.getMana() - cardToPlay.getManacost()); // Deduct mana
+
+        // Update the UI
+        BasicCommands.drawUnit(out, summonedUnit, summonTile);
+        BasicCommands.setUnitAttack(out, summonedUnit, summonedUnit.getAttackPower());
+        BasicCommands.setUnitHealth(out, summonedUnit, summonedUnit.getCurrentHealth());
+        BasicCommands.setPlayer2Mana(out, aiPlayer);
     }
+
+
 
     private Tile selectSummonTile(GameState gameState) {
-        return null;
-        //TODO: Alaa to implement
+        // Highlight valid summon tiles
+        gameState.getValidSummonTile(out);
+        List<Tile> validTiles = gameState.getHighlightedTiles(); // Assuming this method exists
+        if (validTiles.isEmpty()) {
+            return null; // No valid tiles available
+        }
+
+        // Get the AI's avatar and its health
+        Unit aiAvatar = gameState.getPlayer2().getAvatar();
+        int aiHealth = aiAvatar.getCurrentHealth();
+
+        // Get the human player's avatar and its health
+        Unit humanAvatar = gameState.getPlayer1().getAvatar();
+        int humanHealth = humanAvatar.getCurrentHealth();
+
+        // Determine if the AI is in a losing state
+        boolean isLosing = aiHealth < humanHealth * 0.75;
+        Tile summonTile = null;
+
+        // If the AI is losing, prioritize summoning units closer to its own avatar
+        if (isLosing) {
+            Tile aiAvatarTile = gameState.getBoard().getTileForUnit(aiAvatar);
+            if (aiAvatarTile == null) {
+                return null; // AI avatar tile not found
+            }
+
+            int minDistance = Integer.MAX_VALUE;
+            for (Tile tile : validTiles) {
+                int distance = calculateDistance(aiAvatarTile, tile);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    summonTile = tile;
+                }
+            }
+
+        } else {
+            // Otherwise, prioritize summoning closer to the human avatar
+            Tile humanAvatarTile = gameState.getBoard().getTileForUnit(humanAvatar);
+            if (humanAvatarTile == null) {
+                return null; // Human avatar tile not found
+            }
+
+            int minDistance = Integer.MAX_VALUE;
+            for (Tile tile : validTiles) {
+                int distance = calculateDistance(humanAvatarTile, tile);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    summonTile = tile;
+                }
+            }
+        }
+
+        return summonTile; // Return the selected summon tile
     }
 
-    // Method to find and play the card with the lowest mana cost
+
+      // Helper method to calculate distance between two tiles
+    private int calculateDistance(Tile tile1, Tile tile2) {
+        // Assuming tiles have x and y coordinates
+        int dx = Math.abs(tile1.getTilex() - tile2.getTilex());
+        int dy = Math.abs(tile1.getTiley() - tile2.getTiley());
+        // Use Manhattan distance for simplicity
+        return dx + dy;
+    }
+
+
+
+// Method to find and play the card with the lowest mana cost
     public Card selectCardToPlay() {
         while (true) {
             Card lowestManaCard = null;
@@ -223,9 +324,6 @@ public class AIController extends Player {
             }
         }
 
-        // End the turn after playing all possible cards
-        EndTurnClicked endTurnEvent = new EndTurnClicked();
-        endTurnEvent.processEvent(out, new GameState(), null);  //Passing 'null' since the AI isn't clicking, it's automatic
 
         // Return null if no card was played
         return null;}
