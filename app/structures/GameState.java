@@ -1,6 +1,7 @@
 package structures;
 
 import akka.actor.ActorRef;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import commands.BasicCommands;
 import structures.basic.*;
 import utils.BasicObjectBuilders;
@@ -17,7 +18,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GameState {
     private int currentTurn;
+    @JsonIgnore
     private HumanPlayer player1;
+
+    @JsonIgnore
     private AIController player2;
     private boolean isHumanTurn;
     private boolean gameInitialized;
@@ -121,10 +125,6 @@ public class GameState {
         highlightedTiles.add(tile);
     }
 
-    public void clearHighlightedTiles() {
-        highlightedTiles.clear();
-    }
-
     public List<Tile> getHighlightedTiles() {
         return highlightedTiles;
     }
@@ -220,12 +220,11 @@ public class GameState {
         Tile tile1 = board.getTile(tileX, tileY);
         Unit unit = board.getUnitOnTile(tile1);
 
-        if (unit.getAbility() instanceof Flying) {
+        if (unit.getAbility() instanceof Flying && out != null) {
             unit.getAbility().triggerAbility(out, this, tile1);
         }
 
         Tile lastTile = null;
-        clearAllHighlights(out);
 
         int cardinalRange = 2;
         int diagonalRange = 1;
@@ -358,8 +357,9 @@ public class GameState {
     public void handleSpellCardClick(ActorRef out, Tile clickedTile) {
         if (selectedCard != null && !selectedCard.isCreature()) {
             SpellEffect spellEffect = SpellEffectMap.getSpellEffectForCard(selectedCard.getCardname());
-            if (spellEffect != null && isHighlightedTile(clickedTile)) {
+            if (spellEffect != null && (redHighlightedTiles.contains(clickedTile) || highlightedTiles.contains(clickedTile))) {
                 spellEffect.applyEffect(out, this, clickedTile);
+
                 // Remove the card from the player's hand and update the UI
                 Player currentPlayer = getCurrentPlayer();
                 if (currentPlayer instanceof HumanPlayer) {
@@ -374,14 +374,11 @@ public class GameState {
         List<Tile> adjacentTiles = getBoard().getAdjacentTiles(this, unitTile);
         Unit unit = getBoard().getUnitOnTile(unitTile);
 
-        unit.getValidAttackTargets();
-
         // Highlight adjacent tiles with enemy units
         for (Tile tile : adjacentTiles) {
             Unit unitOnTile = getBoard().getUnitOnTile(tile);
 
             if (unitOnTile != null && unitOnTile.getOwner() == getOpponentPlayer() && unit.canAttack(unitOnTile)) {
-                //BasicCommands.drawTile(out, tile, 2); // Highlight mode = 2 (Red)
                 redHighlightedTiles.add(tile);// Track highlighted tiles
 
             }
@@ -421,6 +418,7 @@ public class GameState {
         handleUnitStates(out, attacker, target);
 
         // Clear highlights after the attack
+        setSelectedUnit(null);
         clearAllHighlights(out);
     }
 
@@ -539,6 +537,12 @@ public class GameState {
 
 
     public void handleMovement(Tile targetTile, Unit selectedUnit) {
+        // Check if targetTile is null to avoid NullPointerException
+        if (targetTile == null) {
+            System.out.println("Error: Target tile is null.");
+            return; // Return early if targetTile is invalid
+        }
+
         Tile startTile = getSourceTile();
 
         // Check if the movement is diagonal
@@ -688,4 +692,7 @@ public class GameState {
     }
 
 
+    public void addRedHighlightedTile(Tile enemyTile) {
+        redHighlightedTiles.add(enemyTile);
+    }
 }

@@ -24,13 +24,8 @@ public class EndTurnClicked implements EventProcessor{
 
 	@Override
 	public void processEvent(ActorRef out, GameState gameState, JsonNode message) {
-		if (!gameState.isGameInitialized()) {
-			return;
-		}
+		gameState.clearAllHighlights(out);
 
-		if (!gameState.getHighlightedTiles().isEmpty() || !gameState.getRedHighlightedTiles().isEmpty()) {
-			gameState.clearAllHighlights(out);
-		}
 		// Get the current player and opponent
 		Player endTurnPlayer = gameState.getCurrentPlayer();
 		Player startTurnPlayer = gameState.getOpponentPlayer();
@@ -64,7 +59,8 @@ public class EndTurnClicked implements EventProcessor{
 		if (endTurnPlayer instanceof HumanPlayer) {
 			BasicCommands.addPlayer1Notification(out, "AI's Turn", 1);
 			endTurnPlayer.drawCard();
-			startTurnPlayer.playCard(gameState.getSelectedCard(), out, gameState);  // AI plays a card automatically and after that triggers end turn
+			try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+			((AIController)startTurnPlayer).playCard(null, out, gameState);  // AI plays a card automatically and after that triggers end turn
 		} else if (endTurnPlayer instanceof AIController) {
 			BasicCommands.addPlayer1Notification(out, "Your Turn", 1);
 			endTurnPlayer.drawCard();  // AI draws a card automatically

@@ -23,8 +23,8 @@ public class TrueStrike implements SpellEffect {
         for (Tile enemyTile : enemyTiles) {
             Unit unitOnTile = gameState.getBoard().getUnitOnTile(enemyTile);
             if (unitOnTile != null && !unitOnTile.isAvatar()) {
-                BasicCommands.drawTile(out, enemyTile, 2); // Highlight mode = 2 (Red)
-                gameState.addHighlightedTile(enemyTile); // Track highlighted tiles
+                //BasicCommands.drawTile(out, enemyTile, 2); // Highlight mode = 2 (Red)
+                gameState.addRedHighlightedTile(enemyTile); // Track highlighted tiles
             }
         }
     }
@@ -39,19 +39,19 @@ public class TrueStrike implements SpellEffect {
             System.out.println(updatedHealth);
             // Deal 2 damage to the enemy unit & update UI
             BasicCommands.setUnitHealth(out, targetUnit, targetUnit.getCurrentHealth());
+            BasicCommands.addPlayer1Notification(out, "True Strike Spell Played", 3);
 
             // Check if the unit is dead after taking damage
             if (targetUnit.getCurrentHealth() <= 0) {
                 gameState.getBoard().removeUnitFromTile(targetTile, out);
 
                 try {
-                    Thread.sleep(500); // 500ms delay
+                    Thread.sleep(1000); // 500ms delay
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-
-
+            gameState.clearAllHighlights(out);
     }
 
 }
