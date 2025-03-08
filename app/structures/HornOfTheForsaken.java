@@ -26,7 +26,7 @@ public class HornOfTheForsaken implements SpellEffect, OnHitEventListener {
 
         // Highlight the avatar's tile
         if (avatarTile != null) {
-            BasicCommands.drawTile(out, avatarTile, 1); // Highlight mode = 1 (Blue)
+            //BasicCommands.drawTile(out, avatarTile, 1); // Highlight mode = 1 (Blue)
             gameState.addHighlightedTile(avatarTile); // Track highlighted tiles
         }
     }

@@ -269,7 +269,7 @@ public class Unit {
 
 	public boolean canAttack(Unit target) {
 		// If no restriction, can attack any unit
-		if (validAttackTargets.isEmpty()) {
+		if (validAttackTargets == null || validAttackTargets.isEmpty()) {
 			return true;
 		}
 		// Otherwise, can only attack units in the validAttackTargets list

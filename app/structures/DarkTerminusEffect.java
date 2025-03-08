@@ -25,8 +25,8 @@ public class DarkTerminusEffect implements SpellEffect {
         for (Tile enemyTile : enemyTiles) {
             Unit unitOnTile = gameState.getBoard().getUnitOnTile(enemyTile);
             if (unitOnTile != null && !unitOnTile.isAvatar()) {
-                BasicCommands.drawTile(out, enemyTile, 2); // Highlight mode = 2 (Red)
-                gameState.addHighlightedTile(enemyTile); // Track highlighted tiles
+                //BasicCommands.drawTile(out, enemyTile, 2); // Highlight mode = 2 (Red)
+                gameState.addRedHighlightedTile(enemyTile); // Track highlighted tiles
             }
         }
     }

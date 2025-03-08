@@ -66,12 +66,22 @@ public class CardClicked implements EventProcessor {
                 SpellEffect spellEffect = SpellEffectMap.getSpellEffectForCard(clickedCard.getCardname());
                 if (spellEffect != null) {
                     spellEffect.highlightValidTargets(out, gameState, null);
+                    highlightValidTargetTiles(out,gameState);
                 }
             } else {
                 BasicCommands.addPlayer1Notification(out, "not enough mana", 2);
                 gameState.clearAllHighlights(out);
 
             }
+        }
+    }
+
+    private void highlightValidTargetTiles(ActorRef out, GameState gameState) {
+        for (Tile tile: gameState.getRedHighlightedTiles()) {
+            BasicCommands.drawTile(out,tile,2);
+        }
+        for (Tile tile: gameState.getHighlightedTiles()) {
+            BasicCommands.drawTile(out,tile,1);
         }
     }
 

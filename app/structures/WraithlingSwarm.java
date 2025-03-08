@@ -31,7 +31,7 @@ public class WraithlingSwarm implements SpellEffect {
 	                // Check if there are three consecutive vertical empty tiles below this tile
 	                if (hasThreeVerticalEmptyTiles(gameState, currentTile)) {
 	                    // Highlight the starting tile
-	                    BasicCommands.drawTile(out, currentTile, 1); // Highlight mode = 1 (Blue)
+	                    //BasicCommands.drawTile(out, currentTile, 1); // Highlight mode = 1 (Blue)
 	                    gameState.addHighlightedTile(currentTile); // Track highlighted tiles
 	                }
 	            }

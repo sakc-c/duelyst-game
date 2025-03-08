@@ -10,6 +10,7 @@ import structures.basic.Unit;
 import utils.OrderedCardLoader;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -53,6 +54,12 @@ public class AIController extends Player {
         // Step 1: Play a card and summon if possible
         selectCardToPlay(gameState);
 
+        try {
+            Thread.sleep(1000); // 500ms delay
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         // Step 2: Move units
         Unit unitToMove = decideWhichUnitToMove(gameState);
         if (unitToMove != null) {
@@ -71,8 +78,15 @@ public class AIController extends Player {
         // Step 3: Attack with units
         attackWithUnits(out, gameState);
 
+        try {
+            Thread.sleep(1000); // 500ms delay
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         // Step 4: Trigger end turn event processor
         EndTurnClicked endTurnEvent = new EndTurnClicked();
+        System.out.println("Red Highlighted Tiles are" + gameState.getRedHighlightedTiles());
         endTurnEvent.processEvent(out, gameState, null);
 
     }
@@ -136,6 +150,17 @@ public class AIController extends Player {
                 } else {
                     Tile targetTile = selectTargetTile(lowestManaCard, gameState);
                     if (targetTile != null) {
+                        System.out.println("Target Tile" + targetTile);
+                        gameState.addRedHighlightedTile(targetTile);
+                        gameState.setSelectedCard(lowestManaCard);
+                        BasicCommands.drawTile(out,targetTile,2); //only highlight the hit one in red
+
+                        try {
+                            Thread.sleep(500); // 1 second delay
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
                         System.out.println("Playing spell: " + lowestManaCard.getCardname() +
                                 " at tile (" + targetTile.getTilex() + "," + targetTile.getTiley() + ")");
                         gameState.handleSpellCardClick(out, targetTile);
@@ -152,7 +177,7 @@ public class AIController extends Player {
 
                 // Add a small delay to simulate the card being played
                 try {
-                    Thread.sleep(1000); // 1 second delay
+                    Thread.sleep(200); // 1 second delay
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -168,13 +193,13 @@ public class AIController extends Player {
             spellEffect.highlightValidTargets(out, gameState, null);
         }
 
-        List<Tile> validTiles = gameState.getHighlightedTiles();
+        List<Tile> validTiles = gameState.getRedHighlightedTiles();
         if (validTiles.isEmpty()) {
             return null; // No valid tiles, return early
         }
 
         Random rand = new Random();
-        Tile tile = validTiles.get(rand.nextInt(validTiles.size())); // Now size is guaranteed > 0
+        Tile tile = validTiles.get(rand.nextInt(validTiles.size()));
         return tile;
     }
 
@@ -293,6 +318,8 @@ public class AIController extends Player {
         return null; // No unit to move
     }
 
+
+
     private Tile calculateBestMove(Tile currentTile, Unit targetUnit, GameState gameState, boolean moveAway) {
         int currentX = currentTile.getTilex();
         int currentY = currentTile.getTiley();
@@ -300,66 +327,46 @@ public class AIController extends Player {
         int targetX = targetTile.getTilex();
         int targetY = targetTile.getTiley();
 
-        // Calculate the direction to move
-        int dx = Integer.compare(targetX, currentX);
-        int dy = Integer.compare(targetY, currentY);
+        // Get valid movement tiles (this updates highlightedTiles list in GameState)
+        gameState.getValidMovementTiles(currentX, currentY, null);
+        List<Tile> movementTiles = gameState.getHighlightedTiles();
 
-        // If moving away, reverse the direction
-        if (moveAway) {
-            dx = -dx;
-            dy = -dy;
-        }
+        if (movementTiles.isEmpty()) return null; // No valid moves
 
-        // Calculate the new position
-        int newX = currentX + dx;
-        int newY = currentY + dy;
-
-        // Check if the new position is within bounds and not occupied
-        if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
-            Tile newTile = gameState.getBoard().getTile(newX, newY);
-            if (gameState.getBoard().getUnitOnTile(newTile) == null) {
-                return newTile;
-            }
-        }
-
-        // If the direct move is not possible, try adjacent tiles
-        int[][] directions = {
-                {-1, 0}, {1, 0}, // Left, Right
-                {0, -1}, {0, 1}, // Up, Down
-                {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
-        };
-
-        for (int[] dir : directions) {
-            int adjX = currentX + dir[0];
-            int adjY = currentY + dir[1];
-
-            if (adjX >= 0 && adjX < 9 && adjY >= 0 && adjY < 5) {
-                Tile adjTile = gameState.getBoard().getTile(adjX, adjY);
-                if (gameState.getBoard().getUnitOnTile(adjTile) == null) {
-                    return adjTile;
-                }
-            }
-        }
-
-        return null; // No valid move found
+        // Find the best tile based on distance
+        return movementTiles.stream()
+                .min(Comparator.comparingInt(tile -> moveAway ?
+                        calculateDistance(tile, targetTile) * -1 : // Move away increases distance
+                        calculateDistance(tile, targetTile))) // Move towards decreases distance
+                .orElse(null);
     }
 
 
     private void attackWithUnits(ActorRef out, GameState gameState) {
+        // Loop through all tiles occupied by the current player
         for (Tile tile : gameState.getTilesOccupiedByCurrentPlayer()) {
             Unit unit = gameState.getBoard().getUnitOnTile(tile);
-            if (unit == null || unit.hasAttacked()) continue; // Skip if no unit or already attacked
 
-            // Skip if the unit has already attacked
-            if (unit.hasAttacked()) {
-                System.out.println("Skipping unit: " + unit.getName() + " (already attacked)");
+            // Skip if no unit or already attacked
+            if (unit == null || unit.hasAttacked()) {
+                System.out.println("Skipping unit: " + (unit != null ? unit.getName() : "null unit") + " (already attacked or null)");
                 continue;
             }
 
-            gameState.getValidAttackTiles(tile); //this methods set attackable tiles in gameStates list
+            // Get the attackable tiles for this unit
+            gameState.getValidAttackTiles(tile); // Assuming this sets attackable tiles in gameState
             List<Tile> attackableTiles = gameState.getRedHighlightedTiles(); // Get attackable tiles for this unit
+
+            // Check if there are valid attackable tiles
+            if (attackableTiles == null || attackableTiles.isEmpty()) {
+                System.out.println("No valid attackable tiles found for unit: " + unit.getName());
+                continue;
+            }
+
+            // Select the best target for the unit
             Unit target = selectBestTarget(unit, attackableTiles, gameState);
 
+            // If a target is found, proceed with the attack
             if (target != null) {
                 gameState.setSelectedUnit(unit);
                 gameState.handleAttack(out, target); // Ensure attack method has the attacker and target
@@ -367,6 +374,9 @@ public class AIController extends Player {
                 System.out.println("No valid target found for unit: " + unit.getName());
             }
         }
+
+        // Clear all highlights at the end of the method
+        gameState.clearAllHighlights(out);
     }
 
     private Unit selectBestTarget(Unit attacker, List<Tile> attackableTiles, GameState gameState) {
