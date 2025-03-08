@@ -75,6 +75,12 @@ public class AIController extends Player {
             }
         }
 
+        try {
+            Thread.sleep(1000); // 1 second delay
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         // Step 3: Attack with units
         attackWithUnits(out, gameState);
 
@@ -349,11 +355,13 @@ public class AIController extends Player {
 
             // Skip if no unit or already attacked
             if (unit == null || unit.hasAttacked()) {
+                System.out.println("Attacked" + unit.hasAttacked());
                 System.out.println("Skipping unit: " + (unit != null ? unit.getName() : "null unit") + " (already attacked or null)");
                 continue;
             }
 
             // Get the attackable tiles for this unit
+            gameState.clearAllHighlights(out);
             gameState.getValidAttackTiles(tile); // Assuming this sets attackable tiles in gameState
             List<Tile> attackableTiles = gameState.getRedHighlightedTiles(); // Get attackable tiles for this unit
 
@@ -373,10 +381,13 @@ public class AIController extends Player {
             } else {
                 System.out.println("No valid target found for unit: " + unit.getName());
             }
+            gameState.clearAllHighlights(out);
+            try {
+                Thread.sleep(1000); // 1 second delay
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-
-        // Clear all highlights at the end of the method
-        gameState.clearAllHighlights(out);
     }
 
     private Unit selectBestTarget(Unit attacker, List<Tile> attackableTiles, GameState gameState) {
