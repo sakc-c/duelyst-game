@@ -110,23 +110,33 @@ public class AIController extends Player {
             // Iterate through the hand to find the card with the lowest mana cost
             for (Card card : getHand()) {
                 System.out.println("Checking card: " + card.getCardname() + " (Mana Cost: " + card.getManacost() + ")");
-                if (card.getManacost() < lowestManaCost && card.getManacost() <= getMana()) {
-                    // For Sundrop Elixir, check if there are valid targets
-                    if (card.getCardname().equals("Sundrop Elixir")) {
-                        boolean hasValidTarget = false;
-                        for (Tile tile : gameState.getTilesOccupiedByCurrentPlayer()) {
-                            Unit unit = gameState.getBoard().getUnitOnTile(tile);
-                            if (unit != null && !unit.isAvatar() && unit.getCurrentHealth() < unit.getMaxHealth()) {
-                                hasValidTarget = true;
-                                break;
-                            }
-                        }
-                        if (!hasValidTarget) {
-                            System.out.println("Skipping Sundrop Elixir: No valid targets.");
+
+                // Skip if the card costs more than the AI's current mana
+                if (card.getManacost() > getMana()) {
+                    System.out.println("Skipping card: " + card.getCardname() + " (Not enough mana)");
+                    continue;
+                }
+
+                // For spell cards, check if there are valid targets
+                if (!card.getIsCreature()) {
+                    SpellEffect spellEffect = SpellEffectMap.getSpellEffectForCard(card.getCardname());
+                    if (spellEffect != null) {
+                        // Highlight valid targets for the spell
+                        spellEffect.highlightValidTargets(out, gameState, null);
+
+                        // Check if there are any highlighted tiles (valid targets)
+                        if (gameState.getHighlightedTiles().isEmpty() && gameState.getRedHighlightedTiles().isEmpty()) {
+                            System.out.println("Skipping spell card: " + card.getCardname() + " (No valid targets)");
                             continue; // Skip this card if no valid targets
                         }
+                    } else {
+                        System.out.println("Skipping spell card: " + card.getCardname() + " (No spell effect found)");
+                        continue; // Skip this card if no spell effect is found
                     }
+                }
 
+                // Select the card with the lowest mana cost
+                if (card.getManacost() < lowestManaCost) {
                     lowestManaCost = card.getManacost();
                     lowestManaCard = card;
                 }
@@ -156,13 +166,13 @@ public class AIController extends Player {
                 } else {
                     Tile targetTile = selectTargetTile(lowestManaCard, gameState);
                     if (targetTile != null) {
-                        System.out.println("Target Tile" + targetTile);
+                        System.out.println("Target Tile: (" + targetTile.getTilex() + "," + targetTile.getTiley() + ")");
                         gameState.addRedHighlightedTile(targetTile);
                         gameState.setSelectedCard(lowestManaCard);
-                        BasicCommands.drawTile(out,targetTile,2); //only highlight the hit one in red
+                        BasicCommands.drawTile(out, targetTile, 2); // Highlight the target tile in red
 
                         try {
-                            Thread.sleep(500); // 1 second delay
+                            Thread.sleep(500); // 500ms delay
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -183,12 +193,12 @@ public class AIController extends Player {
 
                 // Add a small delay to simulate the card being played
                 try {
-                    Thread.sleep(200); // 1 second delay
+                    Thread.sleep(200); // 200ms delay
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             } else {
-                System.out.println("No card with enough mana.");
+                System.out.println("No card with enough mana or valid targets.");
             }
         } while (cardPlayed); // Continue only if a card was played in the current iteration
     }
