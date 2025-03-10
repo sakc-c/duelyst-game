@@ -109,6 +109,7 @@ public class WraithlingSwarm implements SpellEffect {
  
 	        // Set the owner of the Wraithling
 	        wraithling.setOwner(gameState.getCurrentPlayer());
+			System.out.println("wraithling swarm owner" + gameState.getCurrentPlayer());
 
 	        // Place the Wraithling on the vertical tile
 	        gameState.getBoard().placeUnitOnTile(gameState,wraithling, verticalTile, false);

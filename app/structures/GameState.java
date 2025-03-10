@@ -9,6 +9,7 @@ import utils.StaticConfFiles;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * This class can be used to hold information about the on-going game.
@@ -39,8 +40,8 @@ public class GameState {
         this.currentTurn = 1;
         this.isHumanTurn = true; //start with player's turn
         this.gameInitialized = false; //needs to be initialised
-        this.highlightedTiles = new ArrayList<>();
-        this.redHighlightedTiles = new ArrayList<>();
+        highlightedTiles = new CopyOnWriteArrayList<>();
+        redHighlightedTiles = new CopyOnWriteArrayList<>();
         this.provokeEffects = new HashMap<>();
 
     }
@@ -216,7 +217,7 @@ public class GameState {
         }
     }
 
-    public void getValidMovementTiles(int tileX, int tileY, ActorRef out) {
+    public synchronized void getValidMovementTiles(int tileX, int tileY, ActorRef out) {
         Tile tile1 = board.getTile(tileX, tileY);
         Unit unit = board.getUnitOnTile(tile1);
 
@@ -349,9 +350,6 @@ public class GameState {
                 triggered = true;
             }
         }
-        if (triggered) {
-            BasicCommands.addPlayer1Notification(out, "Opening Gambit Triggered", 3);
-        }
     }
 
     public void handleSpellCardClick(ActorRef out, Tile clickedTile) {
@@ -370,7 +368,7 @@ public class GameState {
         clearAllHighlights(out);
     }
 
-    public void getValidAttackTiles(Tile unitTile) {
+    public synchronized void getValidAttackTiles(Tile unitTile) {
         List<Tile> adjacentTiles = getBoard().getAdjacentTiles(this, unitTile);
         Unit unit = getBoard().getUnitOnTile(unitTile);
 
@@ -398,6 +396,11 @@ public class GameState {
 
     public void handleAttack(ActorRef out, Unit target) {
         Unit attacker = getSelectedUnit();
+        if (attacker == null) {
+            System.out.println("Error: No attacker selected.");
+            return;
+        }
+
         Tile attackerTile = getBoard().getTileForUnit(attacker);
         Tile targetTile = getBoard().getTileForUnit(target);
 
@@ -406,19 +409,20 @@ public class GameState {
             moveAttackerToAdjacentTile(out, attacker, targetTile);
         }
 
+        // Perform the attack
         BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.attack);
         try {
             Thread.sleep(1000); // Delay for animation
         } catch (InterruptedException e) {
-            System.out.println("Error during movement delay");
+            System.out.println("Error during attack animation delay");
         }
         target.takeDamage(attacker.getAttackPower());
 
         // Handle the states after attack
         handleUnitStates(out, attacker, target);
 
-        // Clear highlights after the attack
-        setSelectedUnit(null);
+        // Mark the attacker as having attacked
+        attacker.setHasAttacked(true);
         clearAllHighlights(out);
     }
 
@@ -633,6 +637,10 @@ public class GameState {
             unit.setCanMove(false); // Disable movement
 
         }
+        player2.setMana(0);
+        BasicCommands.setPlayer2Mana(out, player2);
+        player1.setMana(0);
+        BasicCommands.setPlayer1Mana(out, player1);
     }
 
     // clear a player's hand

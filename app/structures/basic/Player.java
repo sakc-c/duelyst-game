@@ -40,7 +40,11 @@ public abstract class Player {
 		return health;
 	}
 	public void setHealth(int health) {
-		this.health = health;
+		if (health>20) {
+			this.health = 20;
+		} else {
+			this.health = health;
+		}
 	}
 	public int getMana() {
 		return mana;

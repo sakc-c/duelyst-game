@@ -9,10 +9,7 @@ import structures.basic.Tile;
 import structures.basic.Unit;
 import utils.OrderedCardLoader;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AIController extends Player {
@@ -23,7 +20,8 @@ public class AIController extends Player {
 
     public AIController(int health, int mana, ActorRef out) {
         super(health, mana);
-        this.deck = OrderedCardLoader.getPlayer2Cards(1);
+        this.deck = OrderedCardLoader.getPlayer2Cards(2);
+        Collections.shuffle(this.deck);
         this.health = health;
         this.out = out;
         this.GameState = new GameState();
@@ -46,6 +44,8 @@ public class AIController extends Player {
         if (getHand().size() < 6 && !deck.isEmpty()) { // Ensure there's space and deck is not empty
             Card newCard = deck.remove(0); // Draw the first card from the deck
             getHand().add(newCard);
+        } else if (!deck.isEmpty()) {
+            deck.remove(0); //regardless, player loses their card
         }
 
     }
@@ -325,7 +325,7 @@ public class AIController extends Player {
         for (Unit unit : aiUnits) {
             Tile currentTile = gameState.getBoard().getTileForUnit(unit);
             Tile bestMove = calculateBestMove(currentTile, humanAvatar, gameState, false); // Move towards human avatar
-            if (bestMove != null) {
+            if (bestMove != null && unit.canMove()) {
                 gameState.setSelectedUnit(unit);
                 return unit;
             }
@@ -359,6 +359,7 @@ public class AIController extends Player {
 
 
     private void attackWithUnits(ActorRef out, GameState gameState) {
+        gameState.clearAllHighlights(out);
         // Loop through all tiles occupied by the current player
         for (Tile tile : gameState.getTilesOccupiedByCurrentPlayer()) {
             Unit unit = gameState.getBoard().getUnitOnTile(tile);
@@ -371,8 +372,12 @@ public class AIController extends Player {
             }
 
             // Get the attackable tiles for this unit
-            gameState.clearAllHighlights(out);
             gameState.getValidAttackTiles(tile); // Assuming this sets attackable tiles in gameState
+            try {
+                Thread.sleep(400); // 1 second delay
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             List<Tile> attackableTiles = gameState.getRedHighlightedTiles(); // Get attackable tiles for this unit
 
             // Check if there are valid attackable tiles
