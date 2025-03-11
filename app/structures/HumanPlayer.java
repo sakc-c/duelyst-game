@@ -10,6 +10,7 @@ import utils.OrderedCardLoader;
 import utils.StaticConfFiles;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class HumanPlayer extends Player {
@@ -18,7 +19,8 @@ public class HumanPlayer extends Player {
 
     public HumanPlayer(int health, int mana, ActorRef out) {
         super(health, mana);
-        this.deck = OrderedCardLoader.getPlayer1Cards(1);
+        this.deck = OrderedCardLoader.getPlayer1Cards(2);
+        Collections.shuffle(this.deck);
         this.out = out;
     }
 
@@ -67,6 +69,8 @@ public class HumanPlayer extends Player {
                 int nextIndex = getHand().size(); // Correct UI index
                 BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
             }
+        } else if (!deck.isEmpty()) {
+            deck.remove(0);
         }
     }
 }
