@@ -59,6 +59,8 @@ public class TileClicked implements EventProcessor {
                 //selected for attack
                 if (unitOnTile != null && unitOnTile.getOwner() == gameState.getOpponentPlayer() && !selectedUnit.hasAttacked()) {
                     gameState.handleAttack(out, unitOnTile);
+                    gameState.setSourceTile(null);
+                    gameState.setSelectedUnit(null);
                 }
                 // Selected for movement
                 else if (gameState.isHighlightedTile(clickedTile) && !selectedUnit.hasMoved()) {
@@ -67,7 +69,6 @@ public class TileClicked implements EventProcessor {
                 }
                 // Clicked on a non-highlighted tile(not valid to move/attack), reset selection
                 else {
-                    BasicCommands.addPlayer1Notification(out, "not a valid tile", 2);
                     gameState.clearAllHighlights(out);
                     gameState.setSourceTile(null);
                     gameState.setSelectedUnit(null);

@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import commands.BasicCommands;
 import structures.Ability;
 import structures.GameState;
+import structures.RushAbility;
 import utils.BasicObjectBuilders;
 
 import java.util.ArrayList;
@@ -75,6 +76,11 @@ public class Board {
         unit.setHasAttacked(true);
         unit.setHasMoved(true);
         gameState.triggerProvoke(out);
+
+        if (unit.getAbility() instanceof RushAbility) {
+            unit.setHasAttacked(false);
+            unit.setHasMoved(false);
+        }
     }
 
     public Unit getUnitOnTile(Tile tile) {
