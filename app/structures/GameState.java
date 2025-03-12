@@ -428,8 +428,9 @@ public class GameState {
 
     private void moveAttackerToAdjacentTile(ActorRef out, Unit attacker, Tile targetTile) {
         Tile adjacentTile = findPotentialAdjacentTile(targetTile);
+
         if (adjacentTile != null) {
-            handleMovement(adjacentTile, attacker);
+            handleMovement(out, adjacentTile, attacker);
         }
 
         // Simulate movement delay
@@ -516,62 +517,7 @@ public class GameState {
         }
     }
 
-    private boolean hasUnitOnXAxis(Tile startTile) {
-        int startX = startTile.getTilex();
-        int startY = startTile.getTiley();
-
-        // Check the tile to the left (one and two spaces)
-        for (int i = 1; i <= 2; i++) {
-            if (startX - i >= 0) {
-                Tile leftTile = getBoard().getTile(startX - i, startY);
-                if (leftTile != null && getBoard().getUnitOnTile(leftTile) != null) {
-                    return true; // Unit found to the left
-                }
-            }
-        }
-
-        // Check the tile to the right (one and two spaces)
-        for (int i = 1; i <= 2; i++) {
-            if (startX + i < 9) {
-                Tile rightTile = getBoard().getTile(startX + i, startY);
-                if (rightTile != null && getBoard().getUnitOnTile(rightTile) != null) {
-                    return true; // Unit found to the right
-                }
-            }
-        }
-
-        return false; // No unit found on the adjacent tiles
-    }
-
-    private boolean hasUnitOnYAxis(Tile startTile) {
-        int startX = startTile.getTilex();
-        int startY = startTile.getTiley();
-
-        // Check the tile above (one and two spaces)
-        for (int i = 1; i <= 2; i++) {
-            if (startY - i >= 0) {
-                Tile upperTile = getBoard().getTile(startX, startY - i);
-                if (upperTile != null && getBoard().getUnitOnTile(upperTile) != null) {
-                    return true; // Unit found above
-                }
-            }
-        }
-
-        // Check the tile below (one and two spaces)
-        for (int i = 1; i <= 2; i++) {
-            if (startY + i < 5) {
-                Tile lowerTile = getBoard().getTile(startX, startY + i);
-                if (lowerTile != null && getBoard().getUnitOnTile(lowerTile) != null) {
-                    return true; // Unit found below
-                }
-            }
-        }
-
-        return false; // No unit found on the adjacent tiles
-    }
-
-
-    public void handleMovement(Tile targetTile, Unit selectedUnit) {
+    public void handleMovement(ActorRef out, Tile targetTile, Unit selectedUnit) {
         // Check if targetTile is null to avoid NullPointerException
         if (targetTile == null) {
             System.out.println("Error: Target tile is null.");
@@ -587,42 +533,145 @@ public class GameState {
         Tile startTile = getSourceTile();
 
         // Calculate the difference in x and y coordinates
-        int dx = Math.abs(targetTile.getTilex() - startTile.getTilex());
-        int dy = Math.abs(targetTile.getTiley() - startTile.getTiley());
+        int dx = targetTile.getTilex() - startTile.getTilex();
+        int dy = targetTile.getTiley() - startTile.getTiley();
 
-        // Check if the movement is valid (two spaces in any direction or one space diagonally)
-        boolean isValidMove = (dx == 2 && dy == 0) || (dx == 0 && dy == 2) || (dx == 1 && dy == 1);
+        // Determine if the movement is diagonal
+        boolean isDiagonal = (dx != 0 && dy != 0);
 
-        if (!isValidMove) {
-            System.out.println("Error: Invalid movement. Units can move two spaces in any direction or one space diagonally.");
-            return;
-        }
+        if (isDiagonal) {
+            // Check for obstacles on all sides (left, right, top, bottom)
+            boolean hasUnitOnLeft = hasUnitOnLeft(startTile);
+            boolean hasUnitOnRight = hasUnitOnRight(startTile);
+            boolean hasUnitOnTop = hasUnitOnTop(startTile);
+            boolean hasUnitOnBottom = hasUnitOnBottom(startTile);
 
-        // Check for obstacles adjacent on x-axis and y-axis if moving diagonally
-        if (dx == 1 && dy == 1) {
-            boolean hasUnitOnX = hasUnitOnXAxis(startTile);
-            boolean hasUnitOnY = hasUnitOnYAxis(startTile);
-
-            // If both axes are blocked, prevent diagonal movement
-            if (hasUnitOnX && hasUnitOnY) {
-                System.out.println("Error: Cannot move diagonally due to obstacles on both x-axis and y-axis.");
+            // Determine the movement direction based on blocked tiles
+            if (hasUnitOnLeft && hasUnitOnRight && hasUnitOnTop && hasUnitOnBottom) {
+                // All sides are blocked, cannot move
+                System.out.println("Cannot move: All sides are blocked.");
+                BasicCommands.addPlayer1Notification(out, "Cannot move: All sides are blocked.", 2);
                 return;
-            }
-
-            // Prioritize x-axis if y-axis is blocked
-            if (hasUnitOnY && !hasUnitOnX) {
-                // Move x-axis first
-                getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false);
-            } else if (hasUnitOnX && !hasUnitOnY) {
-                // Move y-axis first if x-axis is blocked
-                getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true);
+            } else if (hasUnitOnLeft && hasUnitOnRight) {
+                // Both left and right are blocked
+                if (!hasUnitOnTop && !hasUnitOnBottom) {
+                    // Top and bottom are unblocked, move along y-axis
+                    System.out.println("Moving along y-axis first (left and right blocked, top and bottom unblocked).");
+                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                } else if (hasUnitOnTop && !hasUnitOnBottom) {
+                    // Top is blocked, bottom is unblocked
+                    if (dy > 0) {
+                        // Movement is diagonally down, move along y-axis (bottom)
+                        System.out.println("Moving along y-axis first (left and right blocked, top blocked, bottom unblocked, moving down).");
+                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                    } else {
+                        // Movement is diagonally up, cannot move
+                        System.out.println("Cannot move: Left and right blocked, top blocked, moving up.");
+                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
+                        return;
+                    }
+                } else if (!hasUnitOnTop && hasUnitOnBottom) {
+                    // Top is unblocked, bottom is blocked
+                    if (dy < 0) {
+                        // Movement is diagonally up, move along y-axis (top)
+                        System.out.println("Moving along y-axis first (left and right blocked, top unblocked, bottom blocked, moving up).");
+                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                    } else {
+                        // Movement is diagonally down, cannot move
+                        System.out.println("Cannot move: Left and right blocked, bottom blocked, moving down.");
+                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
+                        return;
+                    }
+                } else {
+                    // Both top and bottom are blocked, cannot move
+                    System.out.println("Cannot move: Left, right, top, and bottom blocked.");
+                    BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
+                    return;
+                }
+            } else if (hasUnitOnRight && !hasUnitOnLeft) {
+                // Right is blocked, left is unblocked
+                if (!hasUnitOnTop && !hasUnitOnBottom) {
+                    // Top and bottom are unblocked, move along y-axis
+                    System.out.println("Moving along y-axis first (right blocked, left unblocked, top and bottom unblocked).");
+                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                } else if (hasUnitOnTop && !hasUnitOnBottom) {
+                    // Top is blocked, bottom is unblocked
+                    if (dy > 0) {
+                        // Movement is diagonally down, move along y-axis (bottom)
+                        System.out.println("Moving along y-axis first (right blocked, left unblocked, top blocked, bottom unblocked, moving down).");
+                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                    } else {
+                        // Movement is diagonally up, cannot move
+                        System.out.println("Cannot move: Right blocked, left unblocked, top blocked, moving up.");
+                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
+                        return;
+                    }
+                } else if (!hasUnitOnTop && hasUnitOnBottom) {
+                    // Top is unblocked, bottom is blocked
+                    if (dy < 0) {
+                        // Movement is diagonally up, move along y-axis (top)
+                        System.out.println("Moving along y-axis first (right blocked, left unblocked, top unblocked, bottom blocked, moving up).");
+                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                    } else {
+                        // Movement is diagonally down, cannot move
+                        System.out.println("Cannot move: Right blocked, left unblocked, bottom blocked, moving down.");
+                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
+                        return;
+                    }
+                } else if (!hasUnitOnLeft && hasUnitOnRight && hasUnitOnTop && hasUnitOnBottom) {
+                    // Left is unblocked, but right, top, and bottom are all blocked → Cannot move.
+                    System.out.println("Cannot move: Right, top, and bottom blocked.");
+                    BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
+                    return;
+                } else {
+                    // Both top and bottom are blocked, move along x-axis (left)
+                    System.out.println("Moving along x-axis (left) first (right blocked, left unblocked, top and bottom blocked).");
+                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false); // yFirst = false
+                }
+            } else if (hasUnitOnLeft && !hasUnitOnRight) {
+                // Left is blocked, right is unblocked
+                if (!hasUnitOnTop && !hasUnitOnBottom) {
+                    // Top and bottom are unblocked, move along y-axis
+                    System.out.println("Moving along y-axis first (left blocked, right unblocked, top and bottom unblocked).");
+                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                } else if (hasUnitOnTop && !hasUnitOnBottom) {
+                    // Top is blocked, bottom is unblocked
+                    if (dy > 0) {
+                        // Movement is diagonally down, move along y-axis (bottom)
+                        System.out.println("Moving along y-axis first (left blocked, right unblocked, top blocked, bottom unblocked, moving down).");
+                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                    } else {
+                        // Movement is diagonally up, cannot move
+                        System.out.println("Cannot move: Left blocked, right unblocked, top blocked, moving up.");
+                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
+                        return;
+                    }
+                } else if (!hasUnitOnTop && hasUnitOnBottom) {
+                    // Top is unblocked, bottom is blocked
+                    if (dy < 0) {
+                        // Movement is diagonally up, move along y-axis (top)
+                        System.out.println("Moving along y-axis first (left blocked, right unblocked, top unblocked, bottom blocked, moving up).");
+                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
+                    } else {
+                        // Movement is diagonally down, cannot move
+                        System.out.println("Cannot move: Left blocked, right unblocked, bottom blocked, moving down.");
+                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
+                        return;
+                    }
+                } else {
+                    // Both top and bottom are blocked, move along x-axis (right)
+                    System.out.println("Moving along x-axis (right) first (left blocked, right unblocked, top and bottom blocked).");
+                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false); // yFirst = false
+                }
             } else {
-                // If neither axis is blocked, prefer moving x-axis first
-                getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false);
+                // Default: Move along x-axis (right) first
+                System.out.println("Moving along x-axis (right) first.");
+                getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false); // yFirst = false
             }
         } else {
-            // Non-diagonal or straight movement, place the unit directly
-            getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false);
+            // Non-diagonal movement, place the unit directly
+            System.out.println("Non-diagonal movement.");
+            getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false); // yFirst = false
         }
 
         // Mark the unit as moved
@@ -631,6 +680,66 @@ public class GameState {
         // Reset selection
         setSourceTile(null);
         setSelectedUnit(null);
+    }
+
+    private boolean hasUnitOnTop(Tile startTile) {
+        int startX = startTile.getTilex();
+        int startY = startTile.getTiley();
+
+        // Check the tile above
+        if (startY > 0) {
+            Tile topTile = getBoard().getTile(startX, startY - 1);
+            if (topTile != null && getBoard().getUnitOnTile(topTile) != null) {
+                return true; // Unit found above
+            }
+        }
+
+        return false; // No unit found above
+    }
+
+    private boolean hasUnitOnBottom(Tile startTile) {
+        int startX = startTile.getTilex();
+        int startY = startTile.getTiley();
+
+        // Check the tile below
+        if (startY < 4) {
+            Tile bottomTile = getBoard().getTile(startX, startY + 1);
+            if (bottomTile != null && getBoard().getUnitOnTile(bottomTile) != null) {
+                return true; // Unit found below
+            }
+        }
+
+        return false; // No unit found below
+    }
+
+    private boolean hasUnitOnLeft(Tile startTile) {
+        int startX = startTile.getTilex();
+        int startY = startTile.getTiley();
+
+        // Check the tile to the left
+        if (startX > 0) {
+            Tile leftTile = getBoard().getTile(startX - 1, startY);
+            if (leftTile != null && getBoard().getUnitOnTile(leftTile) != null) {
+                return true; // Unit found to the left
+            }
+        }
+
+        return false; // No unit found to the left
+    }
+
+    private boolean hasUnitOnRight(Tile startTile) {
+        int startX = startTile.getTilex();
+        int startY = startTile.getTiley();
+
+        // Check the tile to the right
+        if (startX < 8) {
+            Tile rightTile = getBoard().getTile(startX + 1, startY);
+            if (rightTile != null && getBoard().getUnitOnTile(rightTile) != null) {
+                return true; // Unit found to the right
+            }
+        }
+
+        return false; // No unit found to the right
     }
 
 

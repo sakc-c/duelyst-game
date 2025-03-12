@@ -71,7 +71,7 @@ public class AIController extends Player {
             if (nextTile != null) {
                 gameState.setSelectedUnit(unitToMove); // Set the selected unit
                 gameState.setSourceTile(currentTile); // Set the source tile
-                gameState.handleMovement(nextTile, unitToMove);
+                gameState.handleMovement(out, nextTile, unitToMove);
             }
         }
 

@@ -64,7 +64,7 @@ public class TileClicked implements EventProcessor {
                 }
                 // Selected for movement
                 else if (gameState.isHighlightedTile(clickedTile) && !selectedUnit.hasMoved()) {
-                    gameState.handleMovement(clickedTile, selectedUnit);
+                    gameState.handleMovement(out, clickedTile, selectedUnit);
                     gameState.clearAllHighlights(out);
                 }
                 // Clicked on a non-highlighted tile(not valid to move/attack), reset selection
