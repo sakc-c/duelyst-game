@@ -520,19 +520,50 @@ public class GameState {
         int startX = startTile.getTilex();
         int startY = startTile.getTiley();
 
-        // Check the tile to the left
-        if (startX > 0) {
-            Tile leftTile = getBoard().getTile(startX - 1, startY);
-            if (leftTile != null && getBoard().getUnitOnTile(leftTile) != null) {
-                return true; // Unit found to the left
+        // Check the tile to the left (one and two spaces)
+        for (int i = 1; i <= 2; i++) {
+            if (startX - i >= 0) {
+                Tile leftTile = getBoard().getTile(startX - i, startY);
+                if (leftTile != null && getBoard().getUnitOnTile(leftTile) != null) {
+                    return true; // Unit found to the left
+                }
             }
         }
 
-        // Check the tile to the right
-        if (startX < 8) {
-            Tile rightTile = getBoard().getTile(startX + 1, startY);
-            if (rightTile != null && getBoard().getUnitOnTile(rightTile) != null) {
-                return true; // Unit found to the right
+        // Check the tile to the right (one and two spaces)
+        for (int i = 1; i <= 2; i++) {
+            if (startX + i < 9) {
+                Tile rightTile = getBoard().getTile(startX + i, startY);
+                if (rightTile != null && getBoard().getUnitOnTile(rightTile) != null) {
+                    return true; // Unit found to the right
+                }
+            }
+        }
+
+        return false; // No unit found on the adjacent tiles
+    }
+
+    private boolean hasUnitOnYAxis(Tile startTile) {
+        int startX = startTile.getTilex();
+        int startY = startTile.getTiley();
+
+        // Check the tile above (one and two spaces)
+        for (int i = 1; i <= 2; i++) {
+            if (startY - i >= 0) {
+                Tile upperTile = getBoard().getTile(startX, startY - i);
+                if (upperTile != null && getBoard().getUnitOnTile(upperTile) != null) {
+                    return true; // Unit found above
+                }
+            }
+        }
+
+        // Check the tile below (one and two spaces)
+        for (int i = 1; i <= 2; i++) {
+            if (startY + i < 5) {
+                Tile lowerTile = getBoard().getTile(startX, startY + i);
+                if (lowerTile != null && getBoard().getUnitOnTile(lowerTile) != null) {
+                    return true; // Unit found below
+                }
             }
         }
 
@@ -547,33 +578,61 @@ public class GameState {
             return; // Return early if targetTile is invalid
         }
 
+        // Check if the target tile is already occupied by another unit
+        if (getBoard().getUnitOnTile(targetTile) != null) {
+            System.out.println("Error: Target tile is already occupied by another unit.");
+            return;
+        }
+
         Tile startTile = getSourceTile();
 
-        // Check if the movement is diagonal
+        // Calculate the difference in x and y coordinates
         int dx = Math.abs(targetTile.getTilex() - startTile.getTilex());
         int dy = Math.abs(targetTile.getTiley() - startTile.getTiley());
-        boolean isDiagonal = (dx != 0 && dy != 0);
 
-        if (isDiagonal) {
-            // Check for obstacles adjacent on x-axis
+        // Check if the movement is valid (two spaces in any direction or one space diagonally)
+        boolean isValidMove = (dx == 2 && dy == 0) || (dx == 0 && dy == 2) || (dx == 1 && dy == 1);
+
+        if (!isValidMove) {
+            System.out.println("Error: Invalid movement. Units can move two spaces in any direction or one space diagonally.");
+            return;
+        }
+
+        // Check for obstacles adjacent on x-axis and y-axis if moving diagonally
+        if (dx == 1 && dy == 1) {
             boolean hasUnitOnX = hasUnitOnXAxis(startTile);
+            boolean hasUnitOnY = hasUnitOnYAxis(startTile);
 
-            // Move y-axis first if there's a unit on the side (x-axis)
-            boolean yfirst = hasUnitOnX;
-            getBoard().placeUnitOnTile(this, selectedUnit, targetTile, yfirst);
+            // If both axes are blocked, prevent diagonal movement
+            if (hasUnitOnX && hasUnitOnY) {
+                System.out.println("Error: Cannot move diagonally due to obstacles on both x-axis and y-axis.");
+                return;
+            }
+
+            // Prioritize x-axis if y-axis is blocked
+            if (hasUnitOnY && !hasUnitOnX) {
+                // Move x-axis first
+                getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false);
+            } else if (hasUnitOnX && !hasUnitOnY) {
+                // Move y-axis first if x-axis is blocked
+                getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true);
+            } else {
+                // If neither axis is blocked, prefer moving x-axis first
+                getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false);
+            }
         } else {
-            // Non-diagonal movement, place the unit directly
+            // Non-diagonal or straight movement, place the unit directly
             getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false);
         }
 
-        // Non-diagonal movement, place the unit directly
         // Mark the unit as moved
         selectedUnit.setHasMoved(true);
 
-        //reset selection
+        // Reset selection
         setSourceTile(null);
         setSelectedUnit(null);
     }
+
 
     public void getValidSummonTile(ActorRef out) {
         // Clear all previously highlighted tiles
