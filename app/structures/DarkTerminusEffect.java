@@ -45,42 +45,32 @@ public class DarkTerminusEffect implements SpellEffect {
 
             // Summon a Wraithling on the same tile
             Unit wraithling = BasicObjectBuilders.loadUnit(StaticConfFiles.wraithling, gameState.getNextUnitId(), Unit.class);
-            if (wraithling == null) {
-                return;
-            }
             wraithling.setOwner(gameState.getCurrentPlayer());
+            wraithling.setCurrentHealth(1);
+            wraithling.setAttackPower(1);
 
             // Place the Wraithling on the tile
             gameState.getBoard().placeUnitOnTile(gameState, wraithling, targetTile, false);
 
             // Add a small delay to ensure the unit is drawn
             try {
-                Thread.sleep(500); // 100ms delay
+                Thread.sleep(100); // 100ms delay
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
             // Update the UI
-            BasicCommands.drawUnit(out, wraithling, targetTile);
-            try {
-                Thread.sleep(100); // 100ms delay
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            BasicCommands.setUnitHealth(out, wraithling, 1); // Wraithlings have 1 health
-            BasicCommands.setUnitAttack(out, wraithling, 1); // Wraithlings have 1 attack
-            wraithling.setCurrentHealth(1);
-            wraithling.setAttackPower(1);
+            //BasicCommands.drawUnit(out, wraithling, targetTile);
+            // Add a small delay to ensure the unit is drawn
 
-            // Play the idle animation
+            // Update the UI
+            BasicCommands.setUnitHealth(out, wraithling, wraithling.getCurrentHealth());
+            BasicCommands.setUnitAttack(out, wraithling, wraithling.getAttackPower());
             BasicCommands.playUnitAnimation(out, wraithling, UnitAnimationType.idle);
 
-            // Add a small delay for visual effect
-            try {
-                Thread.sleep(500); // 500ms delay
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+
+
+
 
         }
     }

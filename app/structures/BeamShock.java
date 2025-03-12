@@ -21,7 +21,7 @@ public class BeamShock implements SpellEffect {
             Unit unit = gameState.getBoard().getUnitOnTile(currentTile);
             if (unit != null && !unit.isAvatar()) {
                 //BasicCommands.drawTile(out, currentTile, 1); // Highlight mode = 1 (Blue)
-                gameState.addHighlightedTile(currentTile);
+                gameState.addRedHighlightedTile(currentTile);
             }
         }
 
