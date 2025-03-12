@@ -32,6 +32,12 @@ public class AIController extends Player {
         return health;
     }
 
+    // Method to update the AI's health and reflect it in the UI
+    public void setHealth(int health) {
+        this.health = health;
+        BasicCommands.setPlayer2Health(out, this); // Update the UI
+    }
+
 
     public void drawInitialHand() {
         for (int i = 0; i < 3; i++) {
