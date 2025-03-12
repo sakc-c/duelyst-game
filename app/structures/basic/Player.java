@@ -67,19 +67,19 @@ public abstract class Player {
     }
 
     public void takeDamage(int damage) {
-        // Reduce avatar's health
-        this.health -= damage;
+		if (hasArtifact) {
+			// Reduce artifact robustness instead of player health
+			artifactRobustness -= damage;
 
-        // If an artifact is equipped, decrease its robustness
-        if (hasArtifact) {
-            artifactRobustness--;
-
-            // Check if the artifact is destroyed
-            if (artifactRobustness <= 0) {
-                hasArtifact = false; // Remove the artifact
-                artifactRobustness = 0;
-            }
-        }
+			// Check if the artifact is destroyed
+			if (artifactRobustness <= 0) {
+				hasArtifact = false; // Remove the artifact
+				artifactRobustness = 0;
+			}
+		} else {
+			// If no artifact, reduce player health
+			this.health -= damage;
+		}
     }
 
     public boolean hasArtifact() {

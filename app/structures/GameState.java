@@ -416,7 +416,7 @@ public class GameState {
         } catch (InterruptedException e) {
             System.out.println("Error during attack animation delay");
         }
-        target.takeDamage(attacker.getAttackPower());
+        target.takeDamage(attacker.getAttackPower(), out, this);
 
         // Handle the states after attack
         handleUnitStates(out, attacker, target);
@@ -470,7 +470,7 @@ public class GameState {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Thread interrupted during sleep", e);
         }
-        target.counterDamage(attacker);
+        target.counterDamage(attacker, out, this);
         BasicCommands.playUnitAnimation(out, target, UnitAnimationType.idle);
 
         if (attacker.getCurrentHealth() <= 0) {

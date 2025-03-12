@@ -190,13 +190,37 @@ public class Unit {
 		return currentHealth > 0;
 	}
 
-	public void takeDamage(int damage) {
-		currentHealth -= damage;
+	public void takeDamage(int damage, ActorRef out, GameState gameState) {
+		// Check if this unit is the player's avatar and if the artifact is equipped
+		if (this.isAvatar() && this.getOwner() != null && this.getOwner().hasArtifact()) {
+			// Reduce artifact robustness instead of player health
+			this.getOwner().takeDamage(1);
+
+			// Trigger the onHit effect (e.g., summon Wraithling)
+			//this.triggerOnHitEffect(out, gameState);
+
+			// Update the UI to show the artifact's remaining robustness
+			BasicCommands.addPlayer1Notification(out, "Artifact robustness reduced to " + this.getOwner().getArtifactRobustness(), 2);
+
+			// If the artifact is destroyed, notify the player
+			if (!this.getOwner().hasArtifact()) {
+				BasicCommands.addPlayer1Notification(out, "Artifact destroyed!", 2);
+			}
+		} else {
+			// If no artifact or not the avatar, reduce unit health
+			this.currentHealth -= damage;
+			if (this.currentHealth < 0) {
+				this.currentHealth = 0;
+			}
+
+			// Update the UI to show the unit's remaining health
+			BasicCommands.setUnitHealth(out, this, this.currentHealth);
+		}
 	}
 
-	public void counterDamage(Unit attacker) {
+	public void counterDamage(Unit attacker, ActorRef out, GameState gameState) {
 		// Example: Deal damage back to the attacker
-		attacker.takeDamage(this.attackPower);
+		attacker.takeDamage(this.attackPower, out, gameState);
 	}
 
 	public void heal(int amount) {
