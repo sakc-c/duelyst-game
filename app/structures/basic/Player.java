@@ -93,7 +93,7 @@ public abstract class Player {
 	public void displayHand(ActorRef out) {
 		for (int i = 0; i < hand.size(); i++) {
 			Card card = hand.get(i);
-			BasicCommands.drawCard(out, card, i+1, 1);
+			BasicCommands.drawCard(out, card, i+1, 0);
 			try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
 		}
 	}
