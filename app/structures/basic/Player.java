@@ -90,11 +90,10 @@ public abstract class Player {
         return artifactRobustness;
     }
 
-	// Display the AI's hand on the UI for testing purposes
 	public void displayHand(ActorRef out) {
 		for (int i = 0; i < hand.size(); i++) {
 			Card card = hand.get(i);
-			BasicCommands.drawCard(out, card, i+1, 1); // Display the card in the AI's hand (position 1 for player 2)
+			BasicCommands.drawCard(out, card, i+1, 1);
 			try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
 		}
 	}
