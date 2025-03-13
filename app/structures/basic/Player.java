@@ -75,7 +75,13 @@ public abstract class Player {
 			}
 		} else {
 			// If no artifact, reduce player health
-			this.health -= damage;
+			int updatedHealth = this.health - damage;
+			if (updatedHealth < 0) {
+				this.health = 0;
+			} else {
+				this.health = updatedHealth;
+			}
+
 		}
     }
 
