@@ -15,27 +15,14 @@ import java.util.stream.Collectors;
 public class AIController extends Player {
     private final GameState GameState;
     private List<Card> deck;  // All available cards
-    private int health; // AI's health
     private ActorRef out;
 
     public AIController(int health, int mana, ActorRef out) {
         super(health, mana);
         this.deck = OrderedCardLoader.getPlayer2Cards(2);
         Collections.shuffle(this.deck);
-        this.health = health;
         this.out = out;
         this.GameState = new GameState();
-    }
-
-    //Getter method to retrieve health of AI
-    public int getHealth() {
-        return health;
-    }
-
-    // Method to update the AI's health and reflect it in the UI
-    public void setHealth(int health) {
-        this.health = health;
-        BasicCommands.setPlayer2Health(out, this); // Update the UI
     }
 
 
@@ -178,7 +165,7 @@ public class AIController extends Player {
                         BasicCommands.drawTile(out, targetTile, 2); // Highlight the target tile in red
 
                         try {
-                            Thread.sleep(500); // 500ms delay
+                            Thread.sleep(2000); // 500ms delay
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

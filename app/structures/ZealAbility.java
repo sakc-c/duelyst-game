@@ -33,6 +33,7 @@ public class ZealAbility implements Ability, OnHitEventListener {
 
             // Update the UI with new attack power
             BasicCommands.setUnitAttack(out, unit, newAttack);
+            BasicCommands.addPlayer1Notification(out, "Zeal Triggered", 3);
         }
 
         try {

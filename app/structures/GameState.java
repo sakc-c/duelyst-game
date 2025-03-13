@@ -416,6 +416,7 @@ public class GameState {
         } catch (InterruptedException e) {
             System.out.println("Error during attack animation delay");
         }
+        BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.idle);
         target.takeDamage(attacker.getAttackPower(), out, this);
 
         // Handle the states after attack
@@ -518,166 +519,93 @@ public class GameState {
     }
 
     public void handleMovement(ActorRef out, Tile targetTile, Unit selectedUnit) {
-        // Check if targetTile is null to avoid NullPointerException
-        if (targetTile == null) {
-            System.out.println("Error: Target tile is null.");
-            return; // Return early if targetTile is invalid
-        }
-
-        // Check if the target tile is already occupied by another unit
-        if (getBoard().getUnitOnTile(targetTile) != null) {
-            System.out.println("Error: Target tile is already occupied by another unit.");
+        if (targetTile == null || getBoard().getUnitOnTile(targetTile) != null) {
+            System.out.println("Error: Invalid target tile.");
             return;
         }
 
         Tile startTile = getSourceTile();
-
-        // Calculate the difference in x and y coordinates
         int dx = targetTile.getTilex() - startTile.getTilex();
         int dy = targetTile.getTiley() - startTile.getTiley();
-
-        // Determine if the movement is diagonal
         boolean isDiagonal = (dx != 0 && dy != 0);
+        boolean moved = false; // Track if movement was successful
 
         if (isDiagonal) {
-            // Check for obstacles on all sides (left, right, top, bottom)
-            boolean hasUnitOnLeft = hasUnitOnLeft(startTile);
-            boolean hasUnitOnRight = hasUnitOnRight(startTile);
-            boolean hasUnitOnTop = hasUnitOnTop(startTile);
-            boolean hasUnitOnBottom = hasUnitOnBottom(startTile);
+            boolean left = hasUnitOnLeft(startTile);
+            boolean right = hasUnitOnRight(startTile);
+            boolean top = hasUnitOnTop(startTile);
+            boolean bottom = hasUnitOnBottom(startTile);
 
-            // Determine the movement direction based on blocked tiles
-            if (hasUnitOnLeft && hasUnitOnRight && hasUnitOnTop && hasUnitOnBottom) {
-                // All sides are blocked, cannot move
-                System.out.println("Cannot move: All sides are blocked.");
-                BasicCommands.addPlayer1Notification(out, "Cannot move: All sides are blocked.", 2);
-                return;
-            } else if (hasUnitOnLeft && hasUnitOnRight) {
-                // Both left and right are blocked
-                if (!hasUnitOnTop && !hasUnitOnBottom) {
-                    // Top and bottom are unblocked, move along y-axis
-                    System.out.println("Moving along y-axis first (left and right blocked, top and bottom unblocked).");
-                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                } else if (hasUnitOnTop && !hasUnitOnBottom) {
-                    // Top is blocked, bottom is unblocked
-                    if (dy > 0) {
-                        // Movement is diagonally down, move along y-axis (bottom)
-                        System.out.println("Moving along y-axis first (left and right blocked, top blocked, bottom unblocked, moving down).");
-                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                    } else {
-                        // Movement is diagonally up, cannot move
-                        System.out.println("Cannot move: Left and right blocked, top blocked, moving up.");
-                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
-                        return;
-                    }
-                } else if (!hasUnitOnTop && hasUnitOnBottom) {
-                    // Top is unblocked, bottom is blocked
-                    if (dy < 0) {
-                        // Movement is diagonally up, move along y-axis (top)
-                        System.out.println("Moving along y-axis first (left and right blocked, top unblocked, bottom blocked, moving up).");
-                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                    } else {
-                        // Movement is diagonally down, cannot move
-                        System.out.println("Cannot move: Left and right blocked, bottom blocked, moving down.");
-                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
-                        return;
-                    }
-                } else {
-                    // Both top and bottom are blocked, cannot move
-                    System.out.println("Cannot move: Left, right, top, and bottom blocked.");
-                    BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
-                    return;
-                }
-            } else if (hasUnitOnRight && !hasUnitOnLeft) {
-                // Right is blocked, left is unblocked
-                if (!hasUnitOnTop && !hasUnitOnBottom) {
-                    // Top and bottom are unblocked, move along y-axis
-                    System.out.println("Moving along y-axis first (right blocked, left unblocked, top and bottom unblocked).");
-                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                } else if (hasUnitOnTop && !hasUnitOnBottom) {
-                    // Top is blocked, bottom is unblocked
-                    if (dy > 0) {
-                        // Movement is diagonally down, move along y-axis (bottom)
-                        System.out.println("Moving along y-axis first (right blocked, left unblocked, top blocked, bottom unblocked, moving down).");
-                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                    } else {
-                        // Movement is diagonally up, cannot move
-                        System.out.println("Cannot move: Right blocked, left unblocked, top blocked, moving up.");
-                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
-                        return;
-                    }
-                } else if (!hasUnitOnTop && hasUnitOnBottom) {
-                    // Top is unblocked, bottom is blocked
-                    if (dy < 0) {
-                        // Movement is diagonally up, move along y-axis (top)
-                        System.out.println("Moving along y-axis first (right blocked, left unblocked, top unblocked, bottom blocked, moving up).");
-                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                    } else {
-                        // Movement is diagonally down, cannot move
-                        System.out.println("Cannot move: Right blocked, left unblocked, bottom blocked, moving down.");
-                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
-                        return;
-                    }
-                } else if (!hasUnitOnLeft && hasUnitOnRight && hasUnitOnTop && hasUnitOnBottom) {
-                    // Left is unblocked, but right, top, and bottom are all blocked → Cannot move.
-                    System.out.println("Cannot move: Right, top, and bottom blocked.");
-                    BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
-                    return;
-                } else {
-                    // Both top and bottom are blocked, move along x-axis (left)
-                    System.out.println("Moving along x-axis (left) first (right blocked, left unblocked, top and bottom blocked).");
-                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false); // yFirst = false
-                }
-            } else if (hasUnitOnLeft && !hasUnitOnRight) {
-                // Left is blocked, right is unblocked
-                if (!hasUnitOnTop && !hasUnitOnBottom) {
-                    // Top and bottom are unblocked, move along y-axis
-                    System.out.println("Moving along y-axis first (left blocked, right unblocked, top and bottom unblocked).");
-                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                } else if (hasUnitOnTop && !hasUnitOnBottom) {
-                    // Top is blocked, bottom is unblocked
-                    if (dy > 0) {
-                        // Movement is diagonally down, move along y-axis (bottom)
-                        System.out.println("Moving along y-axis first (left blocked, right unblocked, top blocked, bottom unblocked, moving down).");
-                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                    } else {
-                        // Movement is diagonally up, cannot move
-                        System.out.println("Cannot move: Left blocked, right unblocked, top blocked, moving up.");
-                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
-                        return;
-                    }
-                } else if (!hasUnitOnTop && hasUnitOnBottom) {
-                    // Top is unblocked, bottom is blocked
-                    if (dy < 0) {
-                        // Movement is diagonally up, move along y-axis (top)
-                        System.out.println("Moving along y-axis first (left blocked, right unblocked, top unblocked, bottom blocked, moving up).");
-                        getBoard().placeUnitOnTile(this, selectedUnit, targetTile, true); // yFirst = true
-                    } else {
-                        // Movement is diagonally down, cannot move
-                        System.out.println("Cannot move: Left blocked, right unblocked, bottom blocked, moving down.");
-                        BasicCommands.addPlayer1Notification(out, "Cannot move: Path blocked.", 2);
-                        return;
-                    }
-                } else {
-                    // Both top and bottom are blocked, move along x-axis (right)
-                    System.out.println("Moving along x-axis (right) first (left blocked, right unblocked, top and bottom blocked).");
-                    getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false); // yFirst = false
-                }
+            if (left && right && top && bottom) {
+                notifyBlocked(out, "All sides are blocked.");
+            } else if (left && right) {
+                moved = moveYFirst(out, selectedUnit, targetTile, dy, top, bottom);
+            } else if (right) {
+                moved = (top && bottom) ? notifyBlocked(out, "Right, top, and bottom blocked.") : moveYFirst(out, selectedUnit, targetTile, dy, top, bottom);
+            } else if (left) {
+                moved = (top && bottom) ? moveXFirst(out, selectedUnit, targetTile) : moveYFirst(out, selectedUnit, targetTile, dy, top, bottom);
             } else {
-                // Default: Move along x-axis (right) first
-                System.out.println("Moving along x-axis (right) first.");
-                getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false); // yFirst = false
+                moved = moveXFirst(out, selectedUnit, targetTile);
             }
         } else {
-            // Non-diagonal movement, place the unit directly
             System.out.println("Non-diagonal movement.");
-            getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false); // yFirst = false
+            getBoard().placeUnitOnTile(this, selectedUnit, targetTile, false);
+            moved = true;
         }
 
-        // Mark the unit as moved
-        selectedUnit.setHasMoved(true);
+        if (moved) {
+            selectedUnit.setHasMoved(true);
+            resetSelection();
+        }
+    }
 
-        // Reset selection
+    /**
+     * Moves vertically if possible.
+     * Returns true if move is successful, false if blocked.
+     */
+    private boolean moveYFirst(ActorRef out, Unit unit, Tile target, int dy, boolean top, boolean bottom) {
+        if (!top && !bottom) {
+            System.out.println("Moving along y-axis.");
+            getBoard().placeUnitOnTile(this, unit, target, true);
+            return true;
+        } else if (top && !bottom && dy > 0) {
+            System.out.println("Moving down.");
+            getBoard().placeUnitOnTile(this, unit, target, true);
+            return true;
+        } else if (!top && bottom && dy < 0) {
+            System.out.println("Moving up.");
+            getBoard().placeUnitOnTile(this, unit, target, true);
+            return true;
+        } else {
+            notifyBlocked(out, "Path blocked.");
+            return false;
+        }
+    }
+
+    /**
+     * Moves along the x-axis.
+     * Always successful, so returns true.
+     */
+    private boolean moveXFirst(ActorRef out, Unit unit, Tile target) {
+        System.out.println("Moving along x-axis.");
+        getBoard().placeUnitOnTile(this, unit, target, false);
+        return true;
+    }
+
+    /**
+     * Notifies the player that movement is blocked.
+     * Returns false so we can track failed movement.
+     */
+    private boolean notifyBlocked(ActorRef out, String message) {
+        System.out.println("Cannot move: " + message);
+        BasicCommands.addPlayer1Notification(out, "Cannot move: " + message, 2);
+        return false;
+    }
+
+    /**
+     * Resets unit selection.
+     */
+    private void resetSelection() {
         setSourceTile(null);
         setSelectedUnit(null);
     }
