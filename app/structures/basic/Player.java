@@ -39,6 +39,7 @@ public abstract class Player {
 	public int getHealth() {
 		return health;
 	}
+
 	public void setHealth(int health) {
 		if (health>20) {
 			this.health = 20;
