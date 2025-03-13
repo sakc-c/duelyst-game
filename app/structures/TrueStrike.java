@@ -54,7 +54,7 @@ public class TrueStrike implements SpellEffect {
             gameState.getBoard().removeUnitFromTile(targetTile, out);
 
             try {
-                Thread.sleep(1000); // 500ms delay
+                Thread.sleep(1200); // 500ms delay
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

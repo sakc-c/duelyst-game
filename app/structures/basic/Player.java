@@ -20,7 +20,7 @@ public abstract class Player {
 	int mana;
 	private Unit avatar;
 	private int artifactRobustness = 0; // 0 means no artifact is equipped
-    private boolean hasArtifact = false;
+	private boolean hasArtifact = false;
 	private List<Card> hand;  // Cards that the player can play
 
 //	private int id;
@@ -63,27 +63,31 @@ public abstract class Player {
         this.hasArtifact = true;
     }
 
-    public void takeDamage(int damage) {
-		if (hasArtifact) {
-			// Reduce artifact robustness instead of player health
-			artifactRobustness -= damage;
+	public void setHasArtifact(boolean hasArtifact) {
+		this.hasArtifact = hasArtifact;
+	}
 
-			// Check if the artifact is destroyed
-			if (artifactRobustness <= 0) {
-				hasArtifact = false; // Remove the artifact
-				artifactRobustness = 0;
-			}
-		} else {
-			// If no artifact, reduce player health
-			int updatedHealth = this.health - damage;
-			if (updatedHealth < 0) {
-				this.health = 0;
-			} else {
-				this.health = updatedHealth;
-			}
-
-		}
-    }
+//    public void takeDamage(int damage) {
+//		if (hasArtifact) {
+//			// Reduce artifact robustness instead of player health
+//			artifactRobustness -= damage;
+//
+//			// Check if the artifact is destroyed
+//			if (artifactRobustness <= 0) {
+//				hasArtifact = false; // Remove the artifact
+//				artifactRobustness = 0;
+//			}
+//		} else {
+//			// If no artifact, reduce player health
+//			int updatedHealth = this.health - damage;
+//			if (updatedHealth < 0) {
+//				this.health = 0;
+//			} else {
+//				this.health = updatedHealth;
+//			}
+//
+//		}
+//    }
 
     public boolean hasArtifact() {
         return hasArtifact;
@@ -107,6 +111,6 @@ public abstract class Player {
 
 	public abstract void playCard (Card card, ActorRef out, GameState gameState);
 
-	public abstract void drawCard();
+	public abstract void drawCard(GameState gameState);
 }
 

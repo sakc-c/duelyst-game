@@ -67,7 +67,7 @@ public class EndTurnClicked implements EventProcessor{
 			// Draw a card for the player ending turn
 			if (endTurnPlayer instanceof HumanPlayer) {
 				BasicCommands.addPlayer1Notification(out, "AI's Turn", 1);
-				endTurnPlayer.drawCard();
+				endTurnPlayer.drawCard(gameState);
 				try {
 					Thread.sleep(2000);
 				} catch (InterruptedException e) {
@@ -76,7 +76,7 @@ public class EndTurnClicked implements EventProcessor{
 				((AIController) startTurnPlayer).playCard(null, out, gameState);  // AI plays a card automatically and after that triggers end turn
 			} else if (endTurnPlayer instanceof AIController) {
 				BasicCommands.addPlayer1Notification(out, "Your Turn", 1);
-				endTurnPlayer.drawCard();  // AI draws a card automatically
+				endTurnPlayer.drawCard(gameState);  // AI draws a card automatically
 			}
 		}
 	}

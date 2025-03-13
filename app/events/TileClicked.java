@@ -79,6 +79,7 @@ public class TileClicked implements EventProcessor {
         else if (unitOnTile != null && unitOnTile.getOwner() == gameState.getCurrentPlayer()) {
             if (!unitOnTile.hasMoved() && unitOnTile.canMove() && !unitOnTile.isStunned()) {
                 gameState.getValidMovementTiles (tilex, tiley, out); //setting in lists in gameState
+                gameState.getValidAttackTiles(clickedTile); //setting in lists in gameState
                 highlightValidTiles(gameState, out);
                 gameState.setSourceTile(clickedTile);
                 gameState.setSelectedUnit(unitOnTile);

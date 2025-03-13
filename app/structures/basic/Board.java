@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Board {
     private Tile[][] tiles; // 9x5 grid of tiles
@@ -77,7 +78,7 @@ public class Board {
         unit.setHasMoved(true);
         gameState.triggerProvoke(out);
 
-        if (unit.getAbility() instanceof RushAbility) {
+        if (unit.getAbilities().stream().anyMatch(ability -> ability instanceof RushAbility)) {
             unit.setHasAttacked(false);
             unit.setHasMoved(false);
         }
@@ -140,15 +141,9 @@ public class Board {
     }
 
     public List<Unit> getUnitsWithAbility(Class<? extends Ability> abilityClass) {
-        List<Unit> unitsWithAbility = new ArrayList<>();
-        for (Map.Entry<Tile, Unit> entry : unitMap.entrySet()) {
-            Unit unit = entry.getValue();
-            Ability ability = unit.getAbility();
-            if (ability != null && abilityClass.isInstance(ability)) {
-                unitsWithAbility.add(unit);
-            }
-        }
-        return unitsWithAbility;
+        return unitMap.values().stream()
+                .filter(unit -> unit.getAbilities().stream().anyMatch(ability -> abilityClass.isInstance(ability)))
+                .collect(Collectors.toList());
     }
 
     public boolean isAdjacentTile(Tile tile1, Tile tile2) {

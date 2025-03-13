@@ -29,9 +29,16 @@ public class Deathwatch implements Ability {
                 break;
             case "Shadow Watcher":
                 sourceUnit.setAttackPower(sourceUnit.getAttackPower() + 1); // Permanent +1 Attack
-                sourceUnit.setCurrentHealth(sourceUnit.getCurrentHealth() + 1); // Permanent +1 Health
+
+                if (sourceUnit.getCurrentHealth() == sourceUnit.getMaxHealth()) { //if health is already at maximum, then this would increase its max health too
+                    sourceUnit.setCurrentHealth(sourceUnit.getCurrentHealth() + 1);
+                    sourceUnit.setMaximumHealth(sourceUnit.getMaxHealth() + 1); // Permanent +1 Health
+                } else {
+                    sourceUnit.setCurrentHealth(sourceUnit.getCurrentHealth() + 1);
+                }
+
                 BasicCommands.setUnitAttack(out,sourceUnit, sourceUnit.getAttackPower());
-                BasicCommands.setUnitHealth(out,sourceUnit,sourceUnit.getAttackPower());
+                BasicCommands.setUnitHealth(out,sourceUnit,sourceUnit.getCurrentHealth());
                 BasicCommands.addPlayer1Notification(out,"Deathwatch Triggered", 3);
                 break;
             case "Bloodmoon Priestess": //summon wraithling on randomly selected unoccupied tile
