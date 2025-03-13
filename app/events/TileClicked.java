@@ -24,8 +24,6 @@ import static java.lang.Thread.sleep;
  * @author Dr. Richard McCreadie
  */
 
-// might need to make some helper methods given all these if conditions, will work on refactoring the code.
-// Was trying to build logic and it being functional first.
 public class TileClicked implements EventProcessor {
 
     @Override

@@ -545,7 +545,7 @@ public class AIController extends Player {
         // Prioritize low-health targets to eliminate them quickly
         score += (10 - target.getCurrentHealth()) * 10;
 
-        // Prioritize high-value targets (e.g., strong attack power)
+        // Prioritize high-value targets (strong attack power)
         score += target.getAttackPower() * 5;
 
         // Avoid suicidal attacks where AI unit would die

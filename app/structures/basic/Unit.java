@@ -61,7 +61,6 @@ public class Unit {
     public void setName(String name) {
         this.name = name;
     }
-    //private int playerId;
 
     public Unit() {
     }
@@ -87,8 +86,7 @@ public class Unit {
     }
 
 
-    public Unit(int id, UnitAnimationType animation, Position position, UnitAnimationSet animations,
-                ImageCorrection correction) {
+    public Unit(int id, UnitAnimationType animation, Position position, UnitAnimationSet animations, ImageCorrection correction) {
         super();
         this.id = id;
         this.animation = animation;
@@ -97,8 +95,7 @@ public class Unit {
         this.correction = correction;
     }
 
-    public Unit(int id, UnitAnimationSet animations, ImageCorrection correction, Tile currentTile,
-                Player owner, int maxHealth, int attackPower) {
+    public Unit(int id, UnitAnimationSet animations, ImageCorrection correction, Tile currentTile, Player owner, int maxHealth, int attackPower) {
         this.id = id;
         this.animation = UnitAnimationType.idle;
         this.position = new Position(currentTile.getXpos(), currentTile.getYpos(), currentTile.getTilex(), currentTile.getTiley());
@@ -197,7 +194,7 @@ public class Unit {
         Player ownerPlayer = this.getOwner();
         if (isAvatar() && ownerPlayer.hasArtifact()) {
             // Reduce artifact robustness instead of player health
-            int updatedArtifact = ownerPlayer.getArtifactRobustness()-1;
+            int updatedArtifact = ownerPlayer.getArtifactRobustness() - 1;
             ownerPlayer.equipArtifact(updatedArtifact);
 
             // If the artifact is destroyed, notify the player

@@ -559,8 +559,7 @@ public class GameState {
             } else if (left && right) {
                 moved = moveYFirst(selectedUnit, targetTile, dy, top, bottom);
             } else if (right) {
-                // If left is open and you're trying to move left (dx < 0),
-                // then you should be able to move along the x-axis
+                // If left is open and trying to move left (dx < 0),
                 if (dx < 0 && !left) {
                     moved = moveXFirst(selectedUnit, targetTile);
                 } else {
@@ -568,7 +567,6 @@ public class GameState {
                 }
             } else if (left) {
                 // If right is open and you're trying to move right (dx > 0),
-                // then you should be able to move along the x-axis
                 if (dx > 0 && !right) {
                     moved = moveXFirst(selectedUnit, targetTile);
                 } else {
@@ -766,9 +764,7 @@ public class GameState {
         if (hand == null || hand.isEmpty()) {
             return;
         }
-        //clear cards from UI
         for (int i = 0; i < hand.size(); i++) {
-            // Clear the card from the UI by drawing a null card
             BasicCommands.deleteCard(out, i + 1); //delete card from position
             try {
                 Thread.sleep(100);
