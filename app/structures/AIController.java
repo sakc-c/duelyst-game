@@ -87,7 +87,6 @@ public class AIController extends Player {
 
         // Step 4: Trigger end turn event processor
         EndTurnClicked endTurnEvent = new EndTurnClicked();
-        System.out.println("Red Highlighted Tiles are" + gameState.getRedHighlightedTiles());
         endTurnEvent.processEvent(out, gameState, null);
 
     }
@@ -117,8 +116,6 @@ public class AIController extends Player {
                         throw new RuntimeException(e);
                     }
                 }
-            } else {
-                System.out.println("No card with enough mana or valid targets.");
             }
         } while (cardPlayed);
     }
@@ -128,11 +125,8 @@ public class AIController extends Player {
         int lowestManaCost = Integer.MAX_VALUE;
 
         for (Card card : getHand()) {
-            System.out.println("Checking card: " + card.getCardname() + " (Mana Cost: " + card.getManacost() + ")");
-
             if (card.getManacost() > getMana()) {
-                System.out.println("Skipping card: " + card.getCardname() + " (Not enough mana)");
-                continue;
+                continue; //skip, not enought mana
             }
 
             if (!isCardPlayable(card, gameState)) {
@@ -143,10 +137,6 @@ public class AIController extends Player {
                 lowestManaCost = card.getManacost();
                 lowestManaCard = card;
             }
-        }
-
-        if (lowestManaCard != null) {
-            System.out.println("Selected card: " + lowestManaCard.getCardname() + " (Mana Cost: " + lowestManaCard.getManacost() + ")");
         }
 
         return lowestManaCard;
@@ -176,13 +166,9 @@ public class AIController extends Player {
         Tile summonTile = selectSummonTile(gameState);
         if (summonTile != null) {
             gameState.setSelectedCard(card);
-
-            System.out.println("Summoning unit: " + card.getCardname() + " at tile (" + summonTile.getTilex() + "," + summonTile.getTiley() + ")");
             gameState.handleCreatureCardClick(out, summonTile, card);
-
             return true;
         } else {
-            System.out.println("No valid summon tile found for card: " + card.getCardname());
             return false;
         }
     }
@@ -211,7 +197,6 @@ public class AIController extends Player {
     }
 
     private void updateAfterCardPlayed(Card card) {
-        System.out.println("Deducting " + card.getManacost() + " mana. Remaining mana: " + (getMana() - card.getManacost()));
         setMana(getMana() - card.getManacost());
         getHand().remove(card);
     }
@@ -490,9 +475,8 @@ public class AIController extends Player {
             }
             List<Tile> attackableTiles = gameState.getRedHighlightedTiles(); // Get attackable tiles for this unit
 
-            // Check if there are valid attackable tiles
+            // Check if there are valid attackable tiles, if not stop
             if (attackableTiles == null || attackableTiles.isEmpty()) {
-                System.out.println("No valid attackable tiles found for unit: " + unit.getName());
                 continue;
             }
 
