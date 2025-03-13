@@ -2,15 +2,12 @@ package structures.basic;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
-
 import akka.actor.ActorRef;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import commands.BasicCommands;
 import structures.Ability;
-import structures.HumanPlayer;
 import structures.OnHitEventListener;
 import structures.GameState;
 
@@ -178,7 +175,7 @@ public class Unit {
 		return currentHealth;
 	}
 
-	public int setCurrentHealth(int health) {return this.currentHealth = health;}
+	public void setCurrentHealth(int health) {this.currentHealth = health;}
 
 	public int getAttackPower() {
 		return attackPower;
@@ -186,11 +183,8 @@ public class Unit {
 
 	public void setAttackPower(int attack) {this.attackPower = attack;}
 
-	public boolean isAlive() {
-		return currentHealth > 0;
-	}
 
-	public void takeDamage(int damage, ActorRef out, GameState gameState) {
+	public void takeDamage(int damage, ActorRef out) {
 		// Check if this unit is the player's avatar and if the artifact is equipped
 		if (this.isAvatar() && this.getOwner() != null && this.getOwner().hasArtifact()) {
 			// Reduce artifact robustness instead of player health
@@ -218,9 +212,9 @@ public class Unit {
 		}
 	}
 
-	public void counterDamage(Unit attacker, ActorRef out, GameState gameState) {
+	public void counterDamage(Unit attacker, ActorRef out) {
 		// Example: Deal damage back to the attacker
-		attacker.takeDamage(this.attackPower, out, gameState);
+		attacker.takeDamage(this.attackPower, out);
 	}
 
 	public void heal(int amount) {
@@ -285,10 +279,6 @@ public class Unit {
 
 	public void setValidAttackTargets(List<Unit> validAttackTargets) {
 		this.validAttackTargets = validAttackTargets;
-	}
-
-	public List<Unit> getValidAttackTargets() {
-		return validAttackTargets;
 	}
 
 	public boolean canAttack(Unit target) {

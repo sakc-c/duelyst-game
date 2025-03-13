@@ -55,7 +55,7 @@ public class HornOfTheForsaken implements SpellEffect, OnHitEventListener {
         Tile avatarTile = gameState.getBoard().getTileForUnit(avatar);
 
         // Get adjacent tiles
-        List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState, avatarTile);
+        List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(avatarTile);
 
         // Filter unoccupied tiles
         List<Tile> unoccupiedTiles = new ArrayList<>();

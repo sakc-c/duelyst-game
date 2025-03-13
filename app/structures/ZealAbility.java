@@ -24,7 +24,6 @@ public class ZealAbility implements Ability, OnHitEventListener {
     //this is called when avatar takes hit
     @Override
     public void onHit(ActorRef out, GameState gameState) {
-        Player currentPlayer = gameState.getCurrentPlayer();
 
         // Get all units with ZealAbility for the current player
         for (Unit unit : gameState.getBoard().getUnitsWithAbility(ZealAbility.class)) {

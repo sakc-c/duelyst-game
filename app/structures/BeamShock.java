@@ -2,9 +2,6 @@ package structures;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
-import structures.GameState;
-import structures.SpellEffect;
-import structures.basic.EffectAnimation;
 import structures.basic.Tile;
 import structures.basic.Unit;
 import structures.basic.UnitAnimationType;

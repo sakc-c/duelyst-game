@@ -53,24 +53,24 @@ public class GameState {
         this.player2.setAvatar(BasicObjectBuilders.loadUnit(StaticConfFiles.aiAvatar, getNextUnitId(), Unit.class));
     }
 
-    public void setBoard(GameState gameState, ActorRef out, Board board) {
+    public void setBoard(ActorRef out, Board board) {
         this.board = board;
 
         Unit player1Avatar = player1.getAvatar();
         Tile tile1 = board.getTile(1, 2);
         player1Avatar.setPositionByTile(tile1);
-        board.getUnitMap().put(tile1, player1Avatar);
+        Board.getUnitMap().put(tile1, player1Avatar);
         BasicCommands.drawUnit(out, player1Avatar, tile1);
 
         Unit player2Avatar = player2.getAvatar();
         Tile tile2 = board.getTile(7, 2);
         player2Avatar.setPositionByTile(tile2);
-        board.getUnitMap().put(tile2, player2Avatar);
+        Board.getUnitMap().put(tile2, player2Avatar);
         BasicCommands.drawUnit(out, player2Avatar, tile1);
     }
 
     public void nextTurn() {
-        for (Map.Entry<Tile, Unit> entry : board.getUnitMap().entrySet()) {
+        for (Map.Entry<Tile, Unit> entry : Board.getUnitMap().entrySet()) {
             Unit unit = entry.getValue();
             if (unit.getOwner() == getCurrentPlayer() && unit.isStunned()) {
                 unit.setStunned(false);
@@ -87,7 +87,7 @@ public class GameState {
     }
 
     public void resetHasMovedFlags() {
-        for (Unit unit : board.getUnitMap().values()) {
+        for (Unit unit : Board.getUnitMap().values()) {
             unit.setHasMoved(false);
             unit.setHasAttacked(false);
         }
@@ -162,10 +162,6 @@ public class GameState {
         return nextUnitId++;
     }
 
-    public Unit getCurrentPlayerAvatar() {
-        return isHumanTurn ? player1.getAvatar() : player2.getAvatar();
-    }
-
     public void clearAllHighlights(ActorRef out) {
         for (Tile tile : highlightedTiles) {
             BasicCommands.drawTile(out, tile, 0); // Reset highlight (mode = 0)
@@ -181,7 +177,7 @@ public class GameState {
 
     public List<Tile> getTilesOccupiedByCurrentPlayer() {
         List<Tile> occupiedTiles = new ArrayList<>();
-        for (Map.Entry<Tile, Unit> entry : board.getUnitMap().entrySet()) {
+        for (Map.Entry<Tile, Unit> entry : Board.getUnitMap().entrySet()) {
             if (entry.getValue().getOwner() == getCurrentPlayer()) {
                 occupiedTiles.add(entry.getKey());
             }
@@ -191,7 +187,7 @@ public class GameState {
 
     public List<Tile> getTilesOccupiedByEnemyPlayer() {
         List<Tile> enemyTiles = new ArrayList<>();
-        for (Map.Entry<Tile, Unit> entry : board.getUnitMap().entrySet()) {
+        for (Map.Entry<Tile, Unit> entry : Board.getUnitMap().entrySet()) {
             Unit unit = entry.getValue();
             // Check if the unit belongs to the enemy
             if (unit.getOwner() == getOpponentPlayer()) {
@@ -203,7 +199,7 @@ public class GameState {
 
     public void triggerProvoke(ActorRef out) {
         // Get the unit map from the board
-        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(getBoard().getUnitMap());
+        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(Board.getUnitMap());
 
         // Iterate through all units on the board
         for (Map.Entry<Tile, Unit> entry : unitMap.entrySet()) {
@@ -282,7 +278,7 @@ public class GameState {
 
             // Check adjacent tiles of the last tile in this direction
             if (lastTile != null && !redHighlightedTiles.contains(lastTile)) {
-                List<Tile> adjacentTiles = board.getAdjacentTiles(this, lastTile);
+                List<Tile> adjacentTiles = board.getAdjacentTiles(lastTile);
 
                 // Highlight adjacent tiles with enemy units
                 for (Tile tile : adjacentTiles) {
@@ -330,7 +326,7 @@ public class GameState {
 
     private void triggerDeathwatchAbilities(ActorRef out) {
         // Get the unit map from the board
-        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(board.getUnitMap());
+        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(Board.getUnitMap());
 
         // Iterate through all units on the board
         for (Map.Entry<Tile, Unit> entry : unitMap.entrySet()) {
@@ -347,8 +343,7 @@ public class GameState {
 
     public void triggerOpeningGambit(ActorRef out) {
         // Get the unit map from the board
-        boolean triggered = false;
-        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(board.getUnitMap());
+        ConcurrentHashMap<Tile, Unit> unitMap = new ConcurrentHashMap<>(Board.getUnitMap());
 
         // Iterate through all units on the board
         for (Map.Entry<Tile, Unit> entry : unitMap.entrySet()) {
@@ -359,7 +354,6 @@ public class GameState {
             if (unit.getAbility() instanceof OpeningGambit) {
                 // Trigger the ability
                 unit.getAbility().triggerAbility(out, this, tile);
-                triggered = true;
             }
         }
     }
@@ -381,7 +375,7 @@ public class GameState {
     }
 
     public synchronized void getValidAttackTiles(Tile unitTile) {
-        List<Tile> adjacentTiles = getBoard().getAdjacentTiles(this, unitTile);
+        List<Tile> adjacentTiles = getBoard().getAdjacentTiles(unitTile);
         Unit unit = getBoard().getUnitOnTile(unitTile);
 
         // Highlight adjacent tiles with enemy units
@@ -396,7 +390,7 @@ public class GameState {
     }
 
     private Tile findPotentialAdjacentTile(Tile targetTile) {
-        List<Tile> adjacentTiles = getBoard().getAdjacentTiles(this, targetTile);
+        List<Tile> adjacentTiles = getBoard().getAdjacentTiles(targetTile);
 
         for (Tile tile : adjacentTiles) {
             if (isHighlightedTile(tile)) {
@@ -434,7 +428,7 @@ public class GameState {
             System.out.println("Error during attack animation delay");
         }
         BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.idle);
-        target.takeDamage(attacker.getAttackPower(), out, this);
+        target.takeDamage(attacker.getAttackPower(), out);
 
         // Handle the states after attack
         handleUnitStates(out, attacker, target);
@@ -496,7 +490,7 @@ public class GameState {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Thread interrupted during sleep", e);
         }
-        target.counterDamage(attacker, out, this);
+        target.counterDamage(attacker, out);
         BasicCommands.playUnitAnimation(out, target, UnitAnimationType.idle);
 
         if (attacker.getCurrentHealth() <= 0) {
@@ -564,13 +558,13 @@ public class GameState {
             if (left && right && top && bottom) {
                 notifyBlocked(out, "All sides are blocked.");
             } else if (left && right) {
-                moved = moveYFirst(out, selectedUnit, targetTile, dy, top, bottom);
+                moved = moveYFirst(selectedUnit, targetTile, dy, top, bottom);
             } else if (right) {
-                moved = (top && bottom) ? notifyBlocked(out, "Right, top, and bottom blocked.") : moveYFirst(out, selectedUnit, targetTile, dy, top, bottom);
+                moved = (top && bottom) ? notifyBlocked(out, "Right, top, and bottom blocked.") : moveYFirst(selectedUnit, targetTile, dy, top, bottom);
             } else if (left) {
-                moved = (top && bottom) ? moveXFirst(out, selectedUnit, targetTile) : moveYFirst(out, selectedUnit, targetTile, dy, top, bottom);
+                moved = (top && bottom) ? moveXFirst(selectedUnit, targetTile) : moveYFirst(selectedUnit, targetTile, dy, top, bottom);
             } else {
-                moved = moveXFirst(out, selectedUnit, targetTile);
+                moved = moveXFirst(selectedUnit, targetTile);
             }
         } else {
             System.out.println("Non-diagonal movement.");
@@ -591,7 +585,7 @@ public class GameState {
      * Moves vertically if possible.
      * Returns true if move is successful, false if blocked.
      */
-    private boolean moveYFirst(ActorRef out, Unit unit, Tile target, int dy, boolean top, boolean bottom) {
+    private boolean moveYFirst(Unit unit, Tile target, int dy, boolean top, boolean bottom) {
         if (!top && !bottom) {
             System.out.println("Moving along y-axis.");
             getBoard().placeUnitOnTile(this, unit, target, true);
@@ -613,7 +607,7 @@ public class GameState {
      * Moves along the x-axis.
      * Always successful, so returns true.
      */
-    private boolean moveXFirst(ActorRef out, Unit unit, Tile target) {
+    private boolean moveXFirst(Unit unit, Tile target) {
         System.out.println("Moving along x-axis.");
         getBoard().placeUnitOnTile(this, unit, target, false);
         return true;
@@ -644,9 +638,7 @@ public class GameState {
         // Check the tile above
         if (startY > 0) {
             Tile topTile = getBoard().getTile(startX, startY - 1);
-            if (topTile != null && getBoard().getUnitOnTile(topTile) != null) {
-                return true; // Unit found above
-            }
+            return topTile != null && getBoard().getUnitOnTile(topTile) != null; // Unit found above
         }
 
         return false; // No unit found above
@@ -659,9 +651,7 @@ public class GameState {
         // Check the tile below
         if (startY < 4) {
             Tile bottomTile = getBoard().getTile(startX, startY + 1);
-            if (bottomTile != null && getBoard().getUnitOnTile(bottomTile) != null) {
-                return true; // Unit found below
-            }
+            return bottomTile != null && getBoard().getUnitOnTile(bottomTile) != null; // Unit found below
         }
 
         return false; // No unit found below
@@ -674,9 +664,7 @@ public class GameState {
         // Check the tile to the left
         if (startX > 0) {
             Tile leftTile = getBoard().getTile(startX - 1, startY);
-            if (leftTile != null && getBoard().getUnitOnTile(leftTile) != null) {
-                return true; // Unit found to the left
-            }
+            return leftTile != null && getBoard().getUnitOnTile(leftTile) != null; // Unit found to the left
         }
 
         return false; // No unit found to the left
@@ -689,9 +677,7 @@ public class GameState {
         // Check the tile to the right
         if (startX < 8) {
             Tile rightTile = getBoard().getTile(startX + 1, startY);
-            if (rightTile != null && getBoard().getUnitOnTile(rightTile) != null) {
-                return true; // Unit found to the right
-            }
+            return rightTile != null && getBoard().getUnitOnTile(rightTile) != null; // Unit found to the right
         }
 
         return false; // No unit found to the right
@@ -778,7 +764,7 @@ public class GameState {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
 

@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class Board {
     private Tile[][] tiles; // 9x5 grid of tiles
-    private ActorRef out;
+    private final ActorRef out;
     private static Map<Tile, Unit> unitMap; // Track which unit is on which tile
 
     public Board(ActorRef out) {
@@ -101,7 +101,7 @@ public class Board {
         return tiles[x][y]; // Retrieve a specific tile
     }
 
-    public List<Tile> getAdjacentTiles(GameState gameState, Tile tile) {
+    public List<Tile> getAdjacentTiles(Tile tile) {
         List<Tile> adjacentTiles = new ArrayList<>();
         int[][] directions = {{-1, 0}, {1, 0}, // Left, Right
                 {0, -1}, {0, 1}, // Up, Down

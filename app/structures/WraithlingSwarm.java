@@ -2,11 +2,9 @@ package structures;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
-import structures.GameState;
 import structures.basic.Tile;
 import structures.basic.Unit;
 import structures.basic.UnitAnimationType;
-import structures.basic.Card;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 

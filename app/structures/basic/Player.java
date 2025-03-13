@@ -41,11 +41,7 @@ public abstract class Player {
 	}
 
 	public void setHealth(int health) {
-		if (health>20) {
-			this.health = 20;
-		} else {
-			this.health = health;
-		}
+        this.health = Math.min(health, 20);
 	}
 	public int getMana() {
 		return mana;
@@ -95,7 +91,7 @@ public abstract class Player {
 		for (int i = 0; i < hand.size(); i++) {
 			Card card = hand.get(i);
 			BasicCommands.drawCard(out, card, i+1, 0);
-			try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
+			try { Thread.sleep(100); } catch (InterruptedException e) { System.out.println("error occured"); }
 		}
 	}
 
