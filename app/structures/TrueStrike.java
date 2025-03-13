@@ -31,27 +31,37 @@ public class TrueStrike implements SpellEffect {
 
     @Override
     public void applyEffect(ActorRef out, GameState gameState, Tile targetTile) {
+        BasicCommands.drawTile(out, targetTile, 2);
+        BasicCommands.addPlayer1Notification(out, "True Strike Spell Played", 3);
+
+        try {
+            Thread.sleep(400);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
         // Check if the target tile has an enemy unit
         Unit targetUnit = gameState.getBoard().getUnitOnTile(targetTile);
-            int damage = 2;
-            int updatedHealth = targetUnit.getCurrentHealth() - damage;
-            targetUnit.setCurrentHealth(updatedHealth);
-            System.out.println(updatedHealth);
-            // Deal 2 damage to the enemy unit & update UI
-            BasicCommands.setUnitHealth(out, targetUnit, targetUnit.getCurrentHealth());
-            BasicCommands.addPlayer1Notification(out, "True Strike Spell Played", 3);
+        int damage = 2;
+        int updatedHealth = targetUnit.getCurrentHealth() - damage;
+        targetUnit.setCurrentHealth(updatedHealth);
+        System.out.println(updatedHealth);
+        // Deal 2 damage to the enemy unit & update UI
+        BasicCommands.setUnitHealth(out, targetUnit, targetUnit.getCurrentHealth());
+        BasicCommands.drawTile(out, targetTile, 2);
 
-            // Check if the unit is dead after taking damage
-            if (targetUnit.getCurrentHealth() <= 0) {
-                gameState.getBoard().removeUnitFromTile(targetTile, out);
+        // Check if the unit is dead after taking damage
+        if (targetUnit.getCurrentHealth() <= 0) {
+            gameState.getBoard().removeUnitFromTile(targetTile, out);
 
-                try {
-                    Thread.sleep(1000); // 500ms delay
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            try {
+                Thread.sleep(1000); // 500ms delay
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            gameState.clearAllHighlights(out);
+        }
+        gameState.clearAllHighlights(out);
+        BasicCommands.drawTile(out, targetTile, 0);
     }
 
 }

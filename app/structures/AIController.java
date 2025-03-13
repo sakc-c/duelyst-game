@@ -162,10 +162,9 @@ public class AIController extends Player {
                         System.out.println("Target Tile: (" + targetTile.getTilex() + "," + targetTile.getTiley() + ")");
                         gameState.addRedHighlightedTile(targetTile);
                         gameState.setSelectedCard(lowestManaCard);
-                        BasicCommands.drawTile(out, targetTile, 2); // Highlight the target tile in red
 
                         try {
-                            Thread.sleep(2000); // 500ms delay
+                            Thread.sleep(500); // 500ms delay
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

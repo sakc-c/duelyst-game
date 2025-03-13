@@ -577,7 +577,6 @@ public class GameState {
             getBoard().placeUnitOnTile(this, unit, target, true);
             return true;
         } else {
-            notifyBlocked(out, "Path blocked.");
             return false;
         }
     }
