@@ -19,8 +19,7 @@ public class SundropElixir implements SpellEffect{
 
             // Check if the unit is NOT the AI's avatar and is not at full health
             if (unit != null && !unit.isAvatar() && unit.getCurrentHealth() < unit.getMaxHealth()) {
-                //BasicCommands.drawTile(out, currentTile, 1); // Blue highlight for healing
-                gameState.addHighlightedTile(currentTile);
+                gameState.addRedHighlightedTile(currentTile); //for all spell cards, adding to redTiles list as that is being checked
             }
         }
     }

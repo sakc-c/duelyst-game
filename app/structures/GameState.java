@@ -206,9 +206,11 @@ public class GameState {
             Unit unit = entry.getValue();
             Tile tile = entry.getKey();
 
-            // Check if the unit has the OpeningGambit ability
-            if (unit.getAbility() instanceof Provoke) {
-                unit.getAbility().triggerAbility(out, this, tile);
+            // Check if the unit has the Provoke Ability
+            for (Ability ability : unit.getAbilities()) {
+                if (ability instanceof Provoke) {
+                    ability.triggerAbility(out, this, tile);
+                }
             }
         }
     }
@@ -217,9 +219,9 @@ public class GameState {
         Tile tile1 = board.getTile(tileX, tileY);
         Unit unit = board.getUnitOnTile(tile1);
 
-        if (unit.getAbility() instanceof Flying && out != null) {
-            unit.getAbility().triggerAbility(out, this, tile1);
-        }
+        unit.getAbilities().stream()
+                .filter(ability -> ability instanceof Flying && out != null)
+                .forEach(ability -> ability.triggerAbility(out, this, tile1));
 
         Tile lastTile = null;
 
@@ -333,11 +335,10 @@ public class GameState {
             Unit unit = entry.getValue();
             Tile tile = entry.getKey();
 
-            // Check if the unit has the Deathwatch ability
-            if (unit.getAbility() instanceof Deathwatch) {
-                // Trigger the Deathwatch ability
-                unit.getAbility().triggerAbility(out, this, tile);
-            }
+            // Check if the unit has the Deathwatch ability and triggers
+            unit.getAbilities().stream()
+                    .filter(ability -> ability instanceof Deathwatch)
+                    .forEach(ability -> ability.triggerAbility(out, this, tile));
         }
     }
 
@@ -351,10 +352,9 @@ public class GameState {
             Tile tile = entry.getKey();
 
             // Check if the unit has the OpeningGambit ability
-            if (unit.getAbility() instanceof OpeningGambit) {
-                // Trigger the ability
-                unit.getAbility().triggerAbility(out, this, tile);
-            }
+            unit.getAbilities().stream()
+                    .filter(ability -> ability instanceof OpeningGambit)
+                    .forEach(ability -> ability.triggerAbility(out, this, tile));
         }
     }
 
@@ -509,7 +509,7 @@ public class GameState {
     }
 
     private void handleUnitDeath(ActorRef out, Unit unit) {
-        if (unit.getAbility() instanceof Provoke) {
+        if (unit.getAbilities().stream().anyMatch(ability -> ability instanceof Provoke)) {
             removeProvokeEffect(unit, out);
         }
         Tile unitTile = getBoard().getTileForUnit(unit);
@@ -523,10 +523,9 @@ public class GameState {
         // Update player health
         Player owner = avatar.getOwner();
         if (owner == getCurrentPlayer()) {
-            Ability ability = avatar.getAbility();
-            if (ability != null) {
-                ability.triggerAbility(out, this, getBoard().getTileForUnit(avatar));
-            }
+            avatar.getAbilities().forEach(ability ->
+                    ability.triggerAbility(out, this, getBoard().getTileForUnit(avatar))
+            );
         }
         owner.setHealth(avatar.getCurrentHealth());
 
@@ -560,9 +559,21 @@ public class GameState {
             } else if (left && right) {
                 moved = moveYFirst(selectedUnit, targetTile, dy, top, bottom);
             } else if (right) {
-                moved = (top && bottom) ? notifyBlocked(out, "Right, top, and bottom blocked.") : moveYFirst(selectedUnit, targetTile, dy, top, bottom);
+                // If left is open and you're trying to move left (dx < 0),
+                // then you should be able to move along the x-axis
+                if (dx < 0 && !left) {
+                    moved = moveXFirst(selectedUnit, targetTile);
+                } else {
+                    moved = (top && bottom) ? notifyBlocked(out, "Right, top, and bottom blocked.") : moveYFirst(selectedUnit, targetTile, dy, top, bottom);
+                }
             } else if (left) {
-                moved = (top && bottom) ? moveXFirst(selectedUnit, targetTile) : moveYFirst(selectedUnit, targetTile, dy, top, bottom);
+                // If right is open and you're trying to move right (dx > 0),
+                // then you should be able to move along the x-axis
+                if (dx > 0 && !right) {
+                    moved = moveXFirst(selectedUnit, targetTile);
+                } else {
+                    moved = (top && bottom) ? moveXFirst(selectedUnit, targetTile) : moveYFirst(selectedUnit, targetTile, dy, top, bottom);
+                }
             } else {
                 moved = moveXFirst(selectedUnit, targetTile);
             }
@@ -574,7 +585,8 @@ public class GameState {
 
         if (moved) {
             selectedUnit.setHasMoved(true);
-            resetSelection();
+            setSourceTile(null);
+            setSelectedUnit(null);
             return true;
         } else {
             return false;
@@ -621,14 +633,6 @@ public class GameState {
         System.out.println("Cannot move: " + message);
         BasicCommands.addPlayer1Notification(out, "Cannot move: " + message, 2);
         return false;
-    }
-
-    /**
-     * Resets unit selection.
-     */
-    private void resetSelection() {
-        setSourceTile(null);
-        setSelectedUnit(null);
     }
 
     private boolean hasUnitOnTop(Tile startTile) {
@@ -743,6 +747,7 @@ public class GameState {
         for (Map.Entry<Tile, Unit> entry : Board.getUnitMap().entrySet()) {
             Unit unit = entry.getValue();
             unit.setCanMove(false); // Disable movement
+            unit.setHasAttacked(true);  //mark as attacked so it cannot attack (disabling it in a way)
 
         }
         player2.setMana(0);

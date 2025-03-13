@@ -74,8 +74,8 @@ public class Initalize implements EventProcessor {
 		BasicCommands.setPlayer1Mana(out, player1);
 
 		// Draw initial hands
-		player1.drawInitialHand(out);
-		player2.drawInitialHand();
+		player1.drawInitialHand(gameState);
+		player2.drawInitialHand(gameState);
 
 		//set Avatar owners
 		player1.getAvatar().setOwner(player1);

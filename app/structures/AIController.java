@@ -1,6 +1,7 @@
 package structures;
 
 import akka.actor.ActorRef;
+import commands.BasicCommands;
 import events.EndTurnClicked;
 import structures.basic.Card;
 import structures.basic.Player;
@@ -23,19 +24,24 @@ public class AIController extends Player {
     }
 
 
-    public void drawInitialHand() {
+    public void drawInitialHand(GameState gameState) {
         for (int i = 0; i < 3; i++) {
-            drawCard();
+            drawCard(gameState);
         }
     }
 
     // The AI draws a card from its deck and adds it to the hand. No need to show on UI
-    public void drawCard() {
+    public void drawCard(GameState gameState) {
         if (getHand().size() < 6 && !deck.isEmpty()) { // Ensure there's space and deck is not empty
             Card newCard = deck.remove(0); // Draw the first card from the deck
             getHand().add(newCard);
         } else if (!deck.isEmpty()) {
             deck.remove(0); //regardless, player loses their card
+        }
+        if (deck.isEmpty() && getHand().isEmpty()) {//if deck is empty and hand is empty too, game over
+            BasicCommands.addPlayer1Notification(out, "Deck finished", 2);
+            Player winner = gameState.getPlayer1();
+            gameState.endGame(winner, out);
         }
 
     }

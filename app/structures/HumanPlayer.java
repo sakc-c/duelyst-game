@@ -19,9 +19,9 @@ public class HumanPlayer extends Player {
         this.out = out;
     }
 
-    public void drawInitialHand(ActorRef out) {
+    public void drawInitialHand(GameState gameState) {
         for (int i = 0; i < 3; i++) {
-            drawCard();
+            drawCard(gameState);
         }
         super.displayHand(out); 
     }
@@ -55,7 +55,7 @@ public class HumanPlayer extends Player {
         }
     }
 
-    public void drawCard() {
+    public void drawCard(GameState gameState) {
         if (getHand().size() < 6) { // Check if there's space in hand
             if (!deck.isEmpty()) { // Check if deck is not empty
                 Card newCard = deck.remove(0);  // Get and remove the first card from the deck
@@ -65,7 +65,12 @@ public class HumanPlayer extends Player {
                 BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
             }
         } else if (!deck.isEmpty()) {
-            deck.remove(0);
+            deck.remove(0); //card is lost even if no space in hand
+        }
+        if (deck.isEmpty() && getHand().isEmpty()) { //if deck is empty and hand is empty too, game over
+            BasicCommands.addPlayer1Notification(out, "Deck finished", 2);
+            Player winner = gameState.getPlayer2();
+            gameState.endGame(winner, out);
         }
     }
 }
