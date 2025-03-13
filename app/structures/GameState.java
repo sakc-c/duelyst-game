@@ -230,40 +230,52 @@ public class GameState {
         int cardinalRange = 2;
         int diagonalRange = 1;
 
-        // Define movement ranges
+        // Define movement directions
         int[][] validDirections = {
-                {-1, 0}, {1, 0}, // Left, Right
-                {0, -1}, {0, 1}, // Up, Down
-                {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
+                {-1, 0}, {1, 0},  // Left, Right
+                {0, -1}, {0, 1},  // Up, Down
+                {-1, -1}, {-1, 1}, {1, -1}, {1, 1}  // Diagonal Moves
         };
 
-        // Highlight directions
         for (int[] direction : validDirections) {
-            int range = (direction[0] != 0 && direction[1] != 0) ? diagonalRange : cardinalRange;
+            boolean isDiagonal = (direction[0] != 0 && direction[1] != 0);
+            int range = isDiagonal ? diagonalRange : cardinalRange;
 
-            // Check tiles in this direction up to the movement range
+            // **Check diagonal validity before proceeding**
+            if (isDiagonal) {
+                int requiredX = tileX + direction[0];  // Required x-direction (left/right)
+                int requiredY = tileY + direction[1];  // Required y-direction (up/down)
+
+                // Check bounds before accessing board.getTile()
+                if (requiredX < 0 || requiredX >= 9 || requiredY < 0 || requiredY >= 5) {
+                    continue;
+                }
+
+                // Both required cardinal directions must be open
+                boolean canMoveX = board.getUnitOnTile(board.getTile(tileX + direction[0], tileY)) == null;
+                boolean canMoveY = board.getUnitOnTile(board.getTile(tileX, tileY + direction[1])) == null;
+
+                if (!canMoveX && !canMoveY) {
+                    continue; // **Skip this diagonal direction**
+                }
+            }
+
             for (int step = 1; step <= range; step++) {
                 int newX = tileX + direction[0] * step;
                 int newY = tileY + direction[1] * step;
 
-                // Check if the new coordinates are within the board bounds
                 if (newX >= 0 && newX < 9 && newY >= 0 && newY < 5) {
                     Tile tile = board.getTile(newX, newY);
                     Unit unitOnTile = board.getUnitOnTile(tile);
 
-                    // If the tile is blocked by another unit
                     if (unitOnTile != null) {
-                        // Highlight enemy units in red
                         if (unitOnTile.getOwner() == getOpponentPlayer()) {
-                            //BasicCommands.drawTile(out, tile, 2); // Highlight mode = 2 (Red)
-                            redHighlightedTiles.add(tile);
+                            redHighlightedTiles.add(tile);  // Highlight enemy units in red
                         }
-                        break; // Stop further movement in this direction
+                        break; // **Stop further movement in this direction**
                     } else {
-                        // Highlight empty tiles
-                        //BasicCommands.drawTile(out, tile, 1); // Highlight mode = 1
-                        addHighlightedTile(tile);
-                        lastTile = tile; // Track the last valid tile in this direction
+                        addHighlightedTile(tile); // Highlight valid movement tile
+                        lastTile = tile;
                     }
                 }
             }
@@ -406,7 +418,12 @@ public class GameState {
 
         // Move the attacker to an adjacent tile if necessary
         if (!getBoard().isAdjacentTile(attackerTile, targetTile)) {
-            moveAttackerToAdjacentTile(out, attacker, targetTile);
+            boolean movementSuccessful = moveAttackerToAdjacentTile(out, attacker, targetTile);
+            if (!movementSuccessful) {
+                clearAllHighlights(out);
+                BasicCommands.addPlayer1Notification(out, "movement to adjacent tile not possible", 3);
+                return; // Exit the method if movement fails
+            }
         }
 
         // Perform the attack
@@ -427,18 +444,26 @@ public class GameState {
         clearAllHighlights(out);
     }
 
-    private void moveAttackerToAdjacentTile(ActorRef out, Unit attacker, Tile targetTile) {
+    private boolean moveAttackerToAdjacentTile(ActorRef out, Unit attacker, Tile targetTile) {
         Tile adjacentTile = findPotentialAdjacentTile(targetTile);
 
         if (adjacentTile != null) {
-            handleMovement(out, adjacentTile, attacker);
-        }
+            boolean movement = handleMovement(out, adjacentTile, attacker);
+            if (!movement) {
+                return false;
+            }
 
-        // Simulate movement delay
-        try {
-            Thread.sleep(2500); // Delay for animation
-        } catch (InterruptedException e) {
-            System.out.println("Error during movement delay");
+            // Simulate movement delay
+            try {
+                Thread.sleep(2500); // Delay for animation
+            } catch (InterruptedException e) {
+                System.out.println("Error during movement delay");
+            }
+
+            return true; // Movement was successful
+        } else {
+            System.out.println("No adjacent tile available for movement.");
+            return false; // Movement failed
         }
     }
 
@@ -518,10 +543,10 @@ public class GameState {
         }
     }
 
-    public void handleMovement(ActorRef out, Tile targetTile, Unit selectedUnit) {
+    public boolean handleMovement(ActorRef out, Tile targetTile, Unit selectedUnit) {
         if (targetTile == null || getBoard().getUnitOnTile(targetTile) != null) {
             System.out.println("Error: Invalid target tile.");
-            return;
+            return false;
         }
 
         Tile startTile = getSourceTile();
@@ -556,6 +581,9 @@ public class GameState {
         if (moved) {
             selectedUnit.setHasMoved(true);
             resetSelection();
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -678,8 +706,7 @@ public class GameState {
         List<Tile> occupiedTiles = getTilesOccupiedByCurrentPlayer();
 
         // Define all 8 possible adjacent directions
-        int[][] directions = {
-                {-1, -1}, {-1, 0}, {-1, 1}, // Top-left, Top, Top-right
+        int[][] directions = {{-1, -1}, {-1, 0}, {-1, 1}, // Top-left, Top, Top-right
                 {0, -1}, {0, 1},  // Left,       Right
                 {1, -1}, {1, 0}, {1, 1}   // Bottom-left, Bottom, Bottom-right
         };
