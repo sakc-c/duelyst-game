@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A basic representation of of the Player. A player
+ * A basic representation of the Player. A player
  * has health and mana.
  * 
  * @author Dr. Richard McCreadie
