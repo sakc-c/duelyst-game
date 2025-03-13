@@ -68,20 +68,30 @@ public abstract class Player {
     }
 
     public void takeDamage(int damage) {
+		// Before reducing health
+		System.out.println("Before damage: Health = " + this.health);
+		// Reduce avatar's health
+		this.health -= damage;
+		if (this.health < 0) {
+			this.health = 0; // Set health to 0 if it goes negative
+		}
+		// After reducing health
+		System.out.println("After damage: Health = " + this.health);
+
+		// If an artifact is equipped, decrease its robustness
 		if (hasArtifact) {
-			// Reduce artifact robustness instead of player health
-			artifactRobustness -= damage;
+			System.out.println("Artifact robustness before: " + artifactRobustness);
+			artifactRobustness--;
 
 			// Check if the artifact is destroyed
 			if (artifactRobustness <= 0) {
 				hasArtifact = false; // Remove the artifact
 				artifactRobustness = 0;
 			}
-		} else {
-			// If no artifact, reduce player health
-			this.health -= damage;
+			System.out.println("Artifact robustness after: " + artifactRobustness);
+			System.out.println("Has artifact: " + hasArtifact);
 		}
-    }
+	}
 
     public boolean hasArtifact() {
         return hasArtifact;

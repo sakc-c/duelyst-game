@@ -443,11 +443,22 @@ public class GameState {
     }
 
     private void handleUnitStates(ActorRef out, Unit attacker, Unit target) {
+        System.out.println("Handling unit states after attack...");
+        System.out.println("Target health: " + target.getCurrentHealth());
+
+        // Ensure health is clamped to 0 if it goes below zero
+        if (target.getCurrentHealth() < 0) {
+            target.setCurrentHealth(0);  // Set health to 0 if it's negative
+        }
+        System.out.println("Health after clamping: " + target.getCurrentHealth());
         attacker.setHasMoved(true);
         attacker.setHasAttacked(true);
 
         if (target.getCurrentHealth() <= 0) {
             handleUnitDeath(out, target);
+            System.out.println("Updating UI health to: " + target.getCurrentHealth());
+            BasicCommands.setUnitHealth(out, target, target.getCurrentHealth());
+            System.out.println("UI health update sent.");
 
             if (target.isAvatar()) {
                 Player winner = attacker.getOwner();
@@ -456,9 +467,11 @@ public class GameState {
         } else {
             handleCounterattack(out, attacker, target);
             BasicCommands.setUnitHealth(out, target, target.getCurrentHealth());
+            System.out.println("UI health update sent.");
         }
 
-        if (target != null && target.isAvatar()) {
+        // Handle avatar-specific logic if target is an avatar
+        if (target.isAvatar()) {
             handleAvatarHit(out, target);
         }
     }
