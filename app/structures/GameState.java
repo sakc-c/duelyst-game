@@ -749,6 +749,10 @@ public class GameState {
         BasicCommands.setPlayer2Mana(out, player2);
         player1.setMana(0);
         BasicCommands.setPlayer1Mana(out, player1);
+        player1.setHealth(0);
+        player2.setHealth(0);
+        BasicCommands.setPlayer1Health(out, player1);
+        BasicCommands.setPlayer2Health(out, player2);
     }
 
     // clear a player's hand
