@@ -39,7 +39,7 @@ public class Deathwatch implements Ability {
                 Player currentPlayer = unit.getOwner();
 
                 // Get adjacent tiles
-                List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState, sourceTile);
+                List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(sourceTile);
 
                 // Filter unoccupied tiles
                 List<Tile> unoccupiedTiles = new ArrayList<>();

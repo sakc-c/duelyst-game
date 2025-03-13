@@ -4,18 +4,13 @@ import akka.actor.ActorRef;
 import commands.BasicCommands;
 import structures.basic.Card;
 import structures.basic.Player;
-import structures.basic.Unit;
-import utils.BasicObjectBuilders;
 import utils.OrderedCardLoader;
-import utils.StaticConfFiles;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class HumanPlayer extends Player {
-    private List<Card> deck;
-    private ActorRef out;
+    private final List<Card> deck;
+    private final ActorRef out;
 
     public HumanPlayer(int health, int mana, ActorRef out) {
         super(health, mana);

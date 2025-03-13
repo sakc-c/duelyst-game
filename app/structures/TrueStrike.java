@@ -3,7 +3,6 @@ package structures;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
-import structures.GameState;
 import structures.basic.Tile;
 import structures.basic.Unit;
 
@@ -57,7 +56,7 @@ public class TrueStrike implements SpellEffect {
             try {
                 Thread.sleep(1000); // 500ms delay
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
         gameState.clearAllHighlights(out);

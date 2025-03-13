@@ -13,7 +13,7 @@ public class Provoke implements Ability {
     public void triggerAbility(ActorRef out, GameState gameState, Tile sourceTile) {
         Unit sourceUnit = gameState.getBoard().getUnitOnTile(sourceTile);
 
-        List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState, sourceTile);
+        List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(sourceTile);
 
         List<Unit> provokeUnits = gameState.getBoard().getUnitsWithAbility(Provoke.class);
 

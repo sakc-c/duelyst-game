@@ -120,7 +120,7 @@ public class OpeningGambit implements Ability {
 
     private void triggerNightsorrowAssassinAbility(ActorRef out, GameState gameState, Tile sourceTile) {
         // Get all adjacent tiles
-        List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(gameState,sourceTile);
+        List<Tile> adjacentTiles = gameState.getBoard().getAdjacentTiles(sourceTile);
 
         // Find an enemy unit below max health
         for (Tile adjacentTile : adjacentTiles) {

@@ -37,7 +37,7 @@ public class Initalize implements EventProcessor {
 
 		// Initialize the board
 		Board board = new Board(out);
-		gameState.setBoard(gameState,out, board);
+		gameState.setBoard(out, board);
 
 		// Set Player 1 & 2 health
 		BasicCommands.setPlayer1Health(out, player1);

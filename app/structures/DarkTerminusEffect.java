@@ -4,7 +4,6 @@ import java.util.List;
 
 import akka.actor.ActorRef;
 import commands.BasicCommands;
-import structures.GameState;
 import structures.basic.Unit;
 import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;

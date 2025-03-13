@@ -1,7 +1,6 @@
 package structures;
 
 import akka.actor.ActorRef;
-import structures.GameState;
 import structures.basic.Tile;
 
 public interface SpellEffect {

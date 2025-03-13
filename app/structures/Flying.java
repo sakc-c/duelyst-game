@@ -1,16 +1,13 @@
 package structures;
 
 import akka.actor.ActorRef;
-import structures.GameState;
 import structures.basic.Tile;
 import structures.basic.Unit;
-import commands.BasicCommands;
 
 public class Flying implements Ability {
 
     @Override
     public void triggerAbility(ActorRef out, GameState gameState, Tile tile) {
-        Unit unitOnTile = gameState.getBoard().getUnitOnTile(tile);
 
         for (int x = 0; x < 9; x++) {
             for (int y = 0; y < 5; y++) {

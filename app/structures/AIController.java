@@ -1,7 +1,6 @@
 package structures;
 
 import akka.actor.ActorRef;
-import commands.BasicCommands;
 import events.EndTurnClicked;
 import structures.basic.Card;
 import structures.basic.Player;
@@ -13,16 +12,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AIController extends Player {
-    private final GameState GameState;
-    private List<Card> deck;  // All available cards
-    private ActorRef out;
+    private final List<Card> deck;  // All available cards
+    private final ActorRef out;
 
     public AIController(int health, int mana, ActorRef out) {
         super(health, mana);
         this.deck = OrderedCardLoader.getPlayer2Cards(2);
         Collections.shuffle(this.deck);
         this.out = out;
-        this.GameState = new GameState();
     }
 
 
@@ -50,15 +47,14 @@ public class AIController extends Player {
         try {
             Thread.sleep(1000); // 500ms delay
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         // Step 2: Move units
         Unit unitToMove = decideWhichUnitToMove(gameState);
         if (unitToMove != null) {
             Tile currentTile = gameState.getBoard().getTileForUnit(unitToMove);
-            boolean isLosing = gameState.getPlayer2().getAvatar().getCurrentHealth() <
-                    gameState.getPlayer1().getAvatar().getCurrentHealth() * 0.75;
+            boolean isLosing = gameState.getPlayer2().getAvatar().getCurrentHealth() < gameState.getPlayer1().getAvatar().getCurrentHealth() * 0.75;
             Tile nextTile = calculateBestMove(currentTile, gameState.getPlayer1().getAvatar(), gameState, isLosing);
 
             if (nextTile != null) {
@@ -71,7 +67,7 @@ public class AIController extends Player {
         try {
             Thread.sleep(1000); // 1 second delay
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         // Step 3: Attack with units
@@ -80,7 +76,7 @@ public class AIController extends Player {
         try {
             Thread.sleep(1000); // 500ms delay
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         // Step 4: Trigger end turn event processor
@@ -112,7 +108,7 @@ public class AIController extends Player {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 }
             } else {
@@ -175,8 +171,7 @@ public class AIController extends Player {
         if (summonTile != null) {
             gameState.setSelectedCard(card);
 
-            System.out.println("Summoning unit: " + card.getCardname() +
-                    " at tile (" + summonTile.getTilex() + "," + summonTile.getTiley() + ")");
+            System.out.println("Summoning unit: " + card.getCardname() + " at tile (" + summonTile.getTilex() + "," + summonTile.getTiley() + ")");
             gameState.handleCreatureCardClick(out, summonTile, card);
 
             return true;
@@ -196,11 +191,10 @@ public class AIController extends Player {
             try {
                 Thread.sleep(500); // Slight delay before playing spell
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
 
-            System.out.println("Playing spell: " + card.getCardname() +
-                    " at tile (" + targetTile.getTilex() + "," + targetTile.getTiley() + ")");
+            System.out.println("Playing spell: " + card.getCardname() + " at tile (" + targetTile.getTilex() + "," + targetTile.getTiley() + ")");
             gameState.handleSpellCardClick(out, targetTile);
 
             return true;
@@ -234,16 +228,17 @@ public class AIController extends Player {
 
         // Strategic targeting based on spell type
         String cardName = card.getCardname();
-        if (cardName.equals("Sundrop Elixir")) {
-            return selectSundropElixirTarget(validTiles);
-        } else if (cardName.equals("Truestrike")) {
-            return selectTrueStrikeTarget(validTiles);
-        } else if (cardName.equals("Beamshock")) {
-            return selectBeamShockTarget(validTiles);
-        } else {
-            // Default to random selection
-            Random rand = new Random();
-            return validTiles.get(rand.nextInt(validTiles.size()));
+        switch (cardName) {
+            case "Sundrop Elixir":
+                return selectSundropElixirTarget(validTiles);
+            case "Truestrike":
+                return selectTrueStrikeTarget(validTiles);
+            case "Beamshock":
+                return selectBeamShockTarget(validTiles);
+            default:
+                // Default to random selection
+                Random rand = new Random();
+                return validTiles.get(rand.nextInt(validTiles.size()));
         }
     }
 
@@ -394,7 +389,7 @@ public class AIController extends Player {
     }
 
 
-      // Helper method to calculate distance between two tiles
+    // Helper method to calculate distance between two tiles
     private int calculateDistance(Tile tile1, Tile tile2) {
         // Assuming tiles have x and y coordinates
         int dx = Math.abs(tile1.getTilex() - tile2.getTilex());
@@ -406,7 +401,6 @@ public class AIController extends Player {
     private Unit decideWhichUnitToMove(GameState gameState) {
         // Get the human player's avatar
         Unit humanAvatar = gameState.getPlayer1().getAvatar();
-        Tile humanAvatarTile = gameState.getBoard().getTileForUnit(humanAvatar);
         int humanHealth = humanAvatar.getCurrentHealth();
 
         // Get the AI's avatar and its health
@@ -452,13 +446,10 @@ public class AIController extends Player {
     }
 
 
-
     private Tile calculateBestMove(Tile currentTile, Unit targetUnit, GameState gameState, boolean moveAway) {
         int currentX = currentTile.getTilex();
         int currentY = currentTile.getTiley();
         Tile targetTile = gameState.getBoard().getTileForUnit(targetUnit);
-        int targetX = targetTile.getTilex();
-        int targetY = targetTile.getTiley();
 
         // Get valid movement tiles (this updates highlightedTiles list in GameState)
         gameState.getValidMovementTiles(currentX, currentY, null);
@@ -467,9 +458,7 @@ public class AIController extends Player {
         if (movementTiles.isEmpty()) return null; // No valid moves
 
         // Find the best tile based on distance
-        return movementTiles.stream()
-                .min(Comparator.comparingInt(tile -> moveAway ?
-                        calculateDistance(tile, targetTile) * -1 : // Move away increases distance
+        return movementTiles.stream().min(Comparator.comparingInt(tile -> moveAway ? calculateDistance(tile, targetTile) * -1 : // Move away increases distance
                         calculateDistance(tile, targetTile))) // Move towards decreases distance
                 .orElse(null);
     }
@@ -483,8 +472,6 @@ public class AIController extends Player {
 
             // Skip if no unit or already attacked
             if (unit == null || unit.hasAttacked()) {
-                System.out.println("Attacked" + unit.hasAttacked());
-                System.out.println("Skipping unit: " + (unit != null ? unit.getName() : "null unit") + " (already attacked or null)");
                 continue;
             }
 
@@ -493,7 +480,7 @@ public class AIController extends Player {
             try {
                 Thread.sleep(400); // 1 second delay
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
             List<Tile> attackableTiles = gameState.getRedHighlightedTiles(); // Get attackable tiles for this unit
 
@@ -517,7 +504,7 @@ public class AIController extends Player {
             try {
                 Thread.sleep(1000); // 1 second delay
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }
@@ -528,7 +515,8 @@ public class AIController extends Player {
 
         for (Tile attackTile : attackableTiles) {
             Unit possibleTarget = gameState.getBoard().getUnitOnTile(attackTile);
-            if (possibleTarget == null || !attacker.canAttack(possibleTarget)) continue; // Skip empty or invalid targets
+            if (possibleTarget == null || !attacker.canAttack(possibleTarget))
+                continue; // Skip empty or invalid targets
 
             int score = calculateTargetScore(attacker, possibleTarget);
 
