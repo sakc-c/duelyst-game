@@ -27,6 +27,14 @@ public class SundropElixir implements SpellEffect{
 
     @Override
     public void applyEffect (ActorRef out, GameState gameState, Tile targetTile) {
+        BasicCommands.drawTile(out, targetTile, 1);
+        BasicCommands.addPlayer1Notification(out, "Sundrop Elixir Spell Played", 3);
+
+        try {
+            Thread.sleep(400);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         Unit unit = gameState.getBoard().getUnitOnTile(targetTile);
         int amount = 4;
