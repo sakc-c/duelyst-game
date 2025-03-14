@@ -59,10 +59,6 @@ public class DarkTerminusEffect implements SpellEffect {
             }
 
             // Update the UI
-            //BasicCommands.drawUnit(out, wraithling, targetTile);
-            // Add a small delay to ensure the unit is drawn
-
-            // Update the UI
             BasicCommands.setUnitHealth(out, wraithling, wraithling.getCurrentHealth());
             BasicCommands.setUnitAttack(out, wraithling, wraithling.getAttackPower());
             BasicCommands.playUnitAnimation(out, wraithling, UnitAnimationType.idle);

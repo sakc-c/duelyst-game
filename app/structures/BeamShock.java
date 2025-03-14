@@ -25,6 +25,7 @@ public class BeamShock implements SpellEffect {
 
     @Override
     public void applyEffect(ActorRef out, GameState gameState, Tile targetTile) {
+        //Stun enemy units for one turn
         BasicCommands.drawTile(out, targetTile, 2);
         BasicCommands.addPlayer1Notification(out,"unit is stunned",3);
 
