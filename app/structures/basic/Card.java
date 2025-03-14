@@ -7,8 +7,6 @@ import structures.*;
 import utils.BasicObjectBuilders;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This is the base representation of a Card which is rendered in the player's hand.
@@ -17,86 +15,115 @@ import java.util.concurrent.ConcurrentHashMap;
  * version is what is rendered when the player clicks on a card in their hand.
  *
  * @author Dr. Richard McCreadie
- *
  */
 public class Card {
 
-	int id;
+    int id;
 
-	String cardname;
-	int manacost;
+    String cardname;
+    int manacost;
 
-	MiniCard miniCard;
-	BigCard bigCard;
+    MiniCard miniCard;
+    BigCard bigCard;
 
-	boolean isCreature;
-	String unitConfig;
+    boolean isCreature;
+    String unitConfig;
 
-	public Card() {};
+    public Card() {
+    }
 
-	public Card(int id, String cardname, int manacost, MiniCard miniCard, BigCard bigCard, boolean isCreature, String unitConfig) {
-		super();
-		this.id = id;
-		this.cardname = cardname;
-		this.manacost = manacost;
-		this.miniCard = miniCard;
-		this.bigCard = bigCard;
-		this.isCreature = isCreature;
-		this.unitConfig = unitConfig;
-	}
+    ;
 
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
-	public String getCardname() {
-		return cardname;
-	}
-	public void setCardname(String cardname) {
-		this.cardname = cardname;
-	}
-	public int getManacost() {
-		return manacost;
-	}
-	public void setManacost(int manacost) {
-		this.manacost = manacost;
-	}
-	public MiniCard getMiniCard() {
-		return miniCard;
-	}
-	public void setMiniCard(MiniCard miniCard) {
-		this.miniCard = miniCard;
-	}
-	public BigCard getBigCard() {
-		return bigCard;
-	}
-	public void setBigCard(BigCard bigCard) {
-		this.bigCard = bigCard;
-	}
-	public boolean getIsCreature() {
-		return isCreature;
-	}
-	public void setIsCreature(boolean isCreature) {
-		this.isCreature = isCreature;
-	}
-	public void setCreature(boolean isCreature) {
-		this.isCreature = isCreature;
-	}
-	public boolean isCreature() {
-		return isCreature;
-	}
-	public String getUnitConfig() {
-		return unitConfig;
-	}
-	public void setUnitConfig(String unitConfig) {
-		this.unitConfig = unitConfig;
-	}
+    public Card(int id, String cardname, int manacost, MiniCard miniCard, BigCard bigCard, boolean isCreature, String unitConfig) {
+        super();
+        this.id = id;
+        this.cardname = cardname;
+        this.manacost = manacost;
+        this.miniCard = miniCard;
+        this.bigCard = bigCard;
+        this.isCreature = isCreature;
+        this.unitConfig = unitConfig;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getCardname() {
+        return cardname;
+    }
+
+    public void setCardname(String cardname) {
+        this.cardname = cardname;
+    }
+
+    public int getManacost() {
+        return manacost;
+    }
+
+    public void setManacost(int manacost) {
+        this.manacost = manacost;
+    }
+
+    public MiniCard getMiniCard() {
+        return miniCard;
+    }
+
+    public void setMiniCard(MiniCard miniCard) {
+        this.miniCard = miniCard;
+    }
+
+    public BigCard getBigCard() {
+        return bigCard;
+    }
+
+    public void setBigCard(BigCard bigCard) {
+        this.bigCard = bigCard;
+    }
+
+    public boolean getIsCreature() {
+        return isCreature;
+    }
+
+    public void setIsCreature(boolean isCreature) {
+        this.isCreature = isCreature;
+    }
+
+    public void setCreature(boolean isCreature) {
+        this.isCreature = isCreature;
+    }
+
+    public boolean isCreature() {
+        return isCreature;
+    }
+
+    public String getUnitConfig() {
+        return unitConfig;
+    }
+
+    public void setUnitConfig(String unitConfig) {
+        this.unitConfig = unitConfig;
+    }
 
 
-	public String getName() { return this.cardname;}
+    public String getName() {
+        return this.cardname;
+    }
 
+    /**
+     * Summons a creature onto the board at the specified tile.
+     * Assigns abilities, health, and attack stats, then updates the UI.
+     * Triggers Opening Gambit abilities immediately.
+     * Registers ZealAbility units to activate when the avatar is hit.
+     *
+     * @param out         The ActorRef for sending commands to the front-end.
+     * @param gameState   The current game state.
+     * @param clickedTile The tile where the creature is summoned.
+     */
     public void summonCreature(ActorRef out, GameState gameState, Tile clickedTile) {
         // Trigger openingGambit abilities of existing units on the board
         gameState.triggerOpeningGambit(out);
@@ -137,7 +164,8 @@ public class Card {
         BasicCommands.setUnitAttack(out, newUnit, attack);
         BasicCommands.setUnitHealth(out, newUnit, health);
 
-        // Trigger ZealAbility if present
+        // Register ZealAbility for future activation instead of triggering immediately.
+        // This ensures that when the avatar is hit, all units with ZealAbility gain +2 attack.
         for (Ability ability : newUnit.getAbilities()) {
             if (ability instanceof ZealAbility) {
                 ability.triggerAbility(out, gameState, clickedTile);

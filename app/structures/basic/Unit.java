@@ -49,7 +49,6 @@ public class Unit {
 
     @JsonIgnore // Exclude the ability field from serialization
     private List<Ability> abilities = new ArrayList<>();
-
     private boolean canMove = true;
     private List<Unit> validAttackTargets = new ArrayList<>(); // List of units this unit can attack
 
@@ -61,7 +60,6 @@ public class Unit {
     public void setName(String name) {
         this.name = name;
     }
-    //private int playerId;
 
     public Unit() {
     }
@@ -70,7 +68,6 @@ public class Unit {
         super();
         this.id = id;
         this.animation = UnitAnimationType.idle;
-
         position = new Position(0, 0, 0, 0);
         this.correction = correction;
         this.animations = animations;
@@ -80,15 +77,13 @@ public class Unit {
         super();
         this.id = id;
         this.animation = UnitAnimationType.idle;
-
         position = new Position(currentTile.getXpos(), currentTile.getYpos(), currentTile.getTilex(), currentTile.getTiley());
         this.correction = correction;
         this.animations = animations;
     }
 
 
-    public Unit(int id, UnitAnimationType animation, Position position, UnitAnimationSet animations,
-                ImageCorrection correction) {
+    public Unit(int id, UnitAnimationType animation, Position position, UnitAnimationSet animations, ImageCorrection correction) {
         super();
         this.id = id;
         this.animation = animation;
@@ -97,8 +92,7 @@ public class Unit {
         this.correction = correction;
     }
 
-    public Unit(int id, UnitAnimationSet animations, ImageCorrection correction, Tile currentTile,
-                Player owner, int maxHealth, int attackPower) {
+    public Unit(int id, UnitAnimationSet animations, ImageCorrection correction, Tile currentTile, Player owner, int maxHealth, int attackPower) {
         this.id = id;
         this.animation = UnitAnimationType.idle;
         this.position = new Position(currentTile.getXpos(), currentTile.getYpos(), currentTile.getTilex(), currentTile.getTiley());
@@ -191,13 +185,21 @@ public class Unit {
         this.attackPower = attack;
     }
 
-
+    /**
+     * Applies damage to the unit.
+     * - If the unit is an avatar with an artifact, reduces artifact robustness instead of health.
+     * - If no artifact or not an avatar, reduces the unit's health.
+     * - Updates the UI to reflect health or artifact changes.
+     *
+     * @param damage The amount of damage to apply.
+     * @param out    The ActorRef used for sending UI updates.
+     */
     public void takeDamage(int damage, ActorRef out) {
         // Check if this unit is the player's avatar and if the artifact is equipped
         Player ownerPlayer = this.getOwner();
         if (isAvatar() && ownerPlayer.hasArtifact()) {
             // Reduce artifact robustness instead of player health
-            int updatedArtifact = ownerPlayer.getArtifactRobustness()-1;
+            int updatedArtifact = ownerPlayer.getArtifactRobustness() - 1;
             ownerPlayer.equipArtifact(updatedArtifact);
 
             // If the artifact is destroyed, notify the player
@@ -268,6 +270,13 @@ public class Unit {
         onHitEventListeners.add(listener);
     }
 
+    /**
+     * Triggers all on-hit effects registered for this unit.
+     * Calls the `onHit` method of each registered event listener.
+     *
+     * @param out       The ActorRef used for sending UI updates.
+     * @param gameState The current game state.
+     */
     public void triggerOnHitEffect(ActorRef out, GameState gameState) {
         for (OnHitEventListener listener : onHitEventListeners) {
             listener.onHit(out, gameState);
@@ -294,6 +303,14 @@ public class Unit {
         this.validAttackTargets = validAttackTargets;
     }
 
+    /**
+     * Checks if this unit can attack a given target.
+     * - If no restrictions exist, the unit can attack any target.
+     * - If restrictions exist, the unit can only attack units in the valid attack list.
+     *
+     * @param target The unit to check.
+     * @return {@code true} if the unit can attack the target, otherwise {@code false}.
+     */
     public boolean canAttack(Unit target) {
         // If no restriction, can attack any unit
         if (validAttackTargets == null || validAttackTargets.isEmpty()) {

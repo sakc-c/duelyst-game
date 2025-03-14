@@ -10,6 +10,15 @@ import utils.StaticConfFiles;
 
 import java.util.List;
 
+/**
+ * Implementation of the Opening Gambit ability.
+ * Triggers everytime a unit is summoned onto the board.
+ * Effects vary by unit:
+ * - Gloom Chaser: Summons a Wraithling directly behind this unit
+ * - Nightsorrow Assassin: Destroys an adjacent enemy unit that is below maximum health
+ * - Silverguard Squire: Gives adjacent allied units directly in front or behind the avatar +1 attack and +1 health
+ */
+
 public class OpeningGambit implements Ability {
     @Override
     public void triggerAbility(ActorRef out, GameState gameState, Tile sourceTile) {

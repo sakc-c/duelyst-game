@@ -118,11 +118,11 @@ public class Tile {
 	}
 	
 	public Unit getUnit() {
-        return unit;
+		return unit;
     }
 
     public void setUnit(Unit unit) {
-        this.unit = unit;
+		this.unit = unit;
     } 
 	
 }

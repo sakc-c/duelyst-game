@@ -7,6 +7,11 @@ import structures.basic.Unit;
 
 import java.util.List;
 
+/**
+ * Implementation of the Provoke ability.
+ * Enemy units in adjacent squares cannot move and can only attack this unit or other units with Provoke.
+ * When activated, adjacent enemy units have their movement restricted and can only target units with Provoke.
+ */
 public class Provoke implements Ability {
 
     @Override

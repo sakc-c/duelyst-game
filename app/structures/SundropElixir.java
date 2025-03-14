@@ -9,7 +9,7 @@ import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 
-public class SundropElixir implements SpellEffect{
+public class SundropElixir implements SpellEffect {
     @Override
     public void highlightValidTargets(ActorRef out, GameState gameState, Tile tile) {
         gameState.clearAllHighlights(out);
@@ -25,7 +25,7 @@ public class SundropElixir implements SpellEffect{
     }
 
     @Override
-    public void applyEffect (ActorRef out, GameState gameState, Tile targetTile) {
+    public void applyEffect(ActorRef out, GameState gameState, Tile targetTile) {
         BasicCommands.drawTile(out, targetTile, 1);
         BasicCommands.addPlayer1Notification(out, "Sundrop Elixir Spell Played", 3);
 
