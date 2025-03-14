@@ -59,14 +59,6 @@ public abstract class Player {
         this.avatar = avatar;
     }
 
-    public void equipArtifact(int robustness) {
-        this.artifactRobustness = robustness;
-        this.hasArtifact = true;
-    }
-
-    public void setHasArtifact(boolean hasArtifact) {
-        this.hasArtifact = hasArtifact;
-    }
 
     public boolean hasArtifact() {
         return hasArtifact;
@@ -75,6 +67,14 @@ public abstract class Player {
     public int getArtifactRobustness() {
         return artifactRobustness;
     }
+
+    public List<Card> getHand() {
+        return hand;
+    }
+
+    public abstract void playCard(Card card, ActorRef out, GameState gameState);
+
+    public abstract void drawCard(GameState gameState);
 
     public void displayHand(ActorRef out) {
         for (int i = 0; i < hand.size(); i++) {
@@ -88,12 +88,13 @@ public abstract class Player {
         }
     }
 
-    public List<Card> getHand() {
-        return hand;
+    public void equipArtifact(int robustness) {
+        this.artifactRobustness = robustness;
+        this.hasArtifact = true;
     }
 
-    public abstract void playCard(Card card, ActorRef out, GameState gameState);
-
-    public abstract void drawCard(GameState gameState);
+    public void setHasArtifact(boolean hasArtifact) {
+        this.hasArtifact = hasArtifact;
+    }
 }
 

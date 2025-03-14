@@ -19,6 +19,12 @@ public class HumanPlayer extends Player {
         this.out = out;
     }
 
+    /**
+     * Draws the initial hand for the player at the start of the game.
+     * Draws three cards and displays them in the UI.
+     *
+     * @param gameState The current game state.
+     */
     public void drawInitialHand(GameState gameState) {
         for (int i = 0; i < 3; i++) {
             drawCard(gameState);
@@ -26,6 +32,16 @@ public class HumanPlayer extends Player {
         super.displayHand(out); 
     }
 
+    /**
+     * Plays a card from the player's hand if they have enough mana.
+     * - Removes the card from the hand and updates the UI.
+     * - Shifts remaining cards in the UI to maintain order.
+     * - Deducts the card's mana cost and updates the mana display.
+     *
+     * @param card      The card being played.
+     * @param out       The ActorRef for sending UI updates.
+     * @param gameState The current game state.
+     */
     public void playCard(Card card, ActorRef out, GameState gameState) {
         if (getHand().contains(card)) {
             if (getMana() >= card.getManacost()) {
@@ -55,14 +71,23 @@ public class HumanPlayer extends Player {
         }
     }
 
+    /**
+     * Draws a card from the deck and adds it to the player's hand.
+     *
+     * - Ensures the hand does not exceed the maximum size (6 cards).
+     * - If no space is available, the drawn card is lost.
+     * - If both the deck and hand are empty, triggers game over.
+     *
+     * @param gameState The current game state.
+     */
     public void drawCard(GameState gameState) {
-        if (getHand().size() < 6) { // Check if there's space in hand
-            if (!deck.isEmpty()) { // Check if deck is not empty
-                Card newCard = deck.remove(0);  // Get and remove the first card from the deck
-                getHand().add(newCard); // Add card to the player's hand
+        if (getHand().size() < 6) {
+            if (!deck.isEmpty()) {
+                Card newCard = deck.remove(0);
+                getHand().add(newCard);
 
                 int nextIndex = getHand().size(); // Correct UI index
-                BasicCommands.drawCard(out, newCard, nextIndex, 0); // Update UI
+                BasicCommands.drawCard(out, newCard, nextIndex, 0);
             }
         } else if (!deck.isEmpty()) {
             deck.remove(0); //card is lost even if no space in hand

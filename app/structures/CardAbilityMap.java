@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Maps card names to their corresponding abilities.
+ * Used to retrieve the appropriate ability objects for each card in the game.
+ * Contains static initialization of all card-ability relationships.
+ */
 public class CardAbilityMap {
     private static final Map<String, List<Ability>> abilities = new HashMap<>();
 

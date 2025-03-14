@@ -4,6 +4,12 @@ import akka.actor.ActorRef;
 import structures.basic.Tile;
 import structures.basic.Unit;
 
+
+/**
+ * Implementation of the Rush ability.
+ * Allows a unit to move and attack on the turn it is summoned.
+ * When a unit with Rush is placed, its movement and attack states are reset to allow immediate action.
+ */
 public class RushAbility implements Ability {
 
     @Override

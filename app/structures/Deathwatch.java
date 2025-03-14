@@ -13,6 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Implementation of the Deathwatch ability.
+ * Triggers when any unit (friendly or enemy) dies on the board.
+ * Effects vary by unit:
+ * - Bad Omen: Gains +1 attack permanently
+ * - Shadow Watcher: Gains +1 attack and +1 health permanently
+ * - Bloodmoon Priestess: Summons a Wraithling on a random adjacent unoccupied tile
+ * - Shadowdancer: Deals 1 damage to enemy avatar and heals owner avatar for 1
+ */
 public class Deathwatch implements Ability {
 
     @Override

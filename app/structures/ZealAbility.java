@@ -6,6 +6,12 @@ import structures.basic.Tile;
 import structures.basic.Unit;
 import structures.basic.Player;
 
+/**
+ * Implementation of the Zeal ability.
+ * Triggers everytime the owning player's avatar takes damage.
+ * When triggered, the unit gains +2 attack permanently.
+ * Implements OnHitEventListener to respond to avatar damage events.
+ */
 public class ZealAbility implements Ability, OnHitEventListener {
 
     @Override

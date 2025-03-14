@@ -114,6 +114,16 @@ public class Card {
         return this.cardname;
     }
 
+    /**
+     * Summons a creature onto the board at the specified tile.
+     * Assigns abilities, health, and attack stats, then updates the UI.
+     * Triggers Opening Gambit abilities immediately.
+     * Registers ZealAbility units to activate when the avatar is hit.
+     *
+     * @param out         The ActorRef for sending commands to the front-end.
+     * @param gameState   The current game state.
+     * @param clickedTile The tile where the creature is summoned.
+     */
     public void summonCreature(ActorRef out, GameState gameState, Tile clickedTile) {
         // Trigger openingGambit abilities of existing units on the board
         gameState.triggerOpeningGambit(out);
@@ -154,7 +164,8 @@ public class Card {
         BasicCommands.setUnitAttack(out, newUnit, attack);
         BasicCommands.setUnitHealth(out, newUnit, health);
 
-        // Trigger ZealAbility if present
+        // Register ZealAbility for future activation instead of triggering immediately.
+        // This ensures that when the avatar is hit, all units with ZealAbility gain +2 attack.
         for (Ability ability : newUnit.getAbilities()) {
             if (ability instanceof ZealAbility) {
                 ability.triggerAbility(out, gameState, clickedTile);

@@ -23,17 +23,22 @@ public class AIController extends Player {
         this.out = out;
     }
 
-
     public void drawInitialHand(GameState gameState) {
         for (int i = 0; i < 3; i++) {
             drawCard(gameState);
         }
     }
 
-    // The AI draws a card from its deck and adds it to the hand. No need to show on UI
+    /**
+     * Draws a card from the AI's deck and adds it to the hand.
+     * If the hand is full, the drawn card is discarded.
+     * If the deck is empty and the hand is also empty, the game ends.
+     *
+     * @param gameState The current game state.
+     */
     public void drawCard(GameState gameState) {
-        if (getHand().size() < 6 && !deck.isEmpty()) { // Ensure there's space and deck is not empty
-            Card newCard = deck.remove(0); // Draw the first card from the deck
+        if (getHand().size() < 6 && !deck.isEmpty()) {
+            Card newCard = deck.remove(0);
             getHand().add(newCard);
         } else if (!deck.isEmpty()) {
             deck.remove(0); //regardless, player loses their card
@@ -46,6 +51,17 @@ public class AIController extends Player {
 
     }
 
+    /**
+     * Executes the AI's turn, which involves:
+     * - Playing a card from the AI's hand.
+     * - Moving units based on the current game state.
+     * - Attacking with units.
+     * - Triggering the end-turn event.
+     *
+     * @param card      The card to be played by the AI.
+     * @param out       The ActorRef used for sending UI updates.
+     * @param gameState The current game state.
+     */
     public void playCard(Card card, ActorRef out, GameState gameState) {
         // Step 1: Play a card and summon if possible
         selectCardToPlay(gameState);
@@ -120,6 +136,13 @@ public class AIController extends Player {
         } while (cardPlayed);
     }
 
+    /**
+     * Finds the best card that the AI can play based on its current mana and game state.
+     * Skips cards that cannot be played due to mana restrictions or invalid targets.
+     *
+     * @param gameState The current game state.
+     * @return The best playable card.
+     */
     private Card findBestPlayableCard(GameState gameState) {
         Card lowestManaCard = null;
         int lowestManaCost = Integer.MAX_VALUE;
@@ -201,6 +224,15 @@ public class AIController extends Player {
         getHand().remove(card);
     }
 
+    /**
+     * Selects the target tile for a spell card.
+     * Identifies valid target tiles and selects the best target based on the spell type.
+     * The AI prioritizes certain units based on their health, attack power, or other factors.
+     *
+     * @param card      The card being played, which defines the type of spell.
+     * @param gameState The current game state.
+     * @return The selected target tile for the spell, or {@code null} if no valid target is found.
+     */
     private Tile selectTargetTile(Card card, GameState gameState) {
         SpellEffect spellEffect = SpellEffectMap.getSpellEffectForCard(card.getCardname());
         if (spellEffect != null) {
@@ -323,6 +355,13 @@ public class AIController extends Player {
     }
 
 
+    /**
+     * Selects the best tile for summoning a unit, considering the AI's current state.
+     * If the AI is losing, it prioritizes summoning units near its own avatar.
+     *
+     * @param gameState The current game state.
+     * @return The best tile to summon a unit, or {@code null} if no valid tiles are found.
+     */
     private Tile selectSummonTile(GameState gameState) {
         // Highlight valid summon tiles
         gameState.getValidSummonTile(out);
@@ -382,13 +421,19 @@ public class AIController extends Player {
 
     // Helper method to calculate distance between two tiles
     private int calculateDistance(Tile tile1, Tile tile2) {
-        // Assuming tiles have x and y coordinates
         int dx = Math.abs(tile1.getTilex() - tile2.getTilex());
         int dy = Math.abs(tile1.getTiley() - tile2.getTiley());
-        // Use Manhattan distance for simplicity
         return dx + dy;
     }
 
+    /**
+     * Decides which unit the AI should move based on the current game state.
+     * The AI considers its health relative to the opponent’s health and selects the best unit to move.
+     * If the AI is losing, it may prioritize moving its avatar or other high-priority units.
+     *
+     * @param gameState The current game state.
+     * @return The unit to move, or {@code null} if no suitable unit is found.
+     */
     private Unit decideWhichUnitToMove(GameState gameState) {
         // Get the human player's avatar
         Unit humanAvatar = gameState.getPlayer1().getAvatar();
@@ -454,10 +499,15 @@ public class AIController extends Player {
                 .orElse(null);
     }
 
-
+    /**
+     * Determines which units the AI will attack and performs the attacks.
+     * Loops through all units controlled by the AI and selects valid attack targets.
+     *
+     * @param out       The ActorRef used for sending UI updates.
+     * @param gameState The current game state.
+     */
     private void attackWithUnits(ActorRef out, GameState gameState) {
         gameState.clearAllHighlights(out);
-        // Loop through all tiles occupied by the current player
         for (Tile tile : gameState.getTilesOccupiedByCurrentPlayer()) {
             Unit unit = gameState.getBoard().getUnitOnTile(tile);
 
@@ -466,8 +516,7 @@ public class AIController extends Player {
                 continue;
             }
 
-            // Get the attackable tiles for this unit
-            gameState.getValidAttackTiles(tile); // Assuming this sets attackable tiles in gameState
+            gameState.getValidAttackTiles(tile); // Get the attackable tiles for this unit
             try {
                 Thread.sleep(400); // 1 second delay
             } catch (InterruptedException e) {
@@ -485,8 +534,8 @@ public class AIController extends Player {
 
             // If a target is found, proceed with the attack
             if (target != null) {
-                gameState.setSelectedUnit(unit);
-                gameState.handleAttack(out, target); // Ensure attack method has the attacker and target
+                gameState.setSelectedUnit(unit); //to set as an attacker in gameState, used by handleAttack method called next
+                gameState.handleAttack(out, target);
             } else {
                 System.out.println("No valid target found for unit: " + unit.getName());
             }
@@ -518,6 +567,16 @@ public class AIController extends Player {
         return bestTarget;
     }
 
+    /**
+     * Calculates a score for a target unit based on several factors:
+     * - Prioritizes avatar units.
+     * - Targets low-health units and high-attack units.
+     * - Avoids suicidal attacks where the AI unit would die.
+     *
+     * @param attacker The attacking unit.
+     * @param target   The target unit.
+     * @return A score representing the desirability of attacking the target.
+     */
     private int calculateTargetScore(Unit attacker, Unit target) {
         int score = 0;
 

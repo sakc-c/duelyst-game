@@ -4,6 +4,11 @@ import akka.actor.ActorRef;
 import structures.basic.Tile;
 import structures.basic.Unit;
 
+/**
+ * Implementation of the Flying ability.
+ * Allows the unit to move to any unoccupied space on the board.
+ * When the unit is selected, all empty tiles on the board are highlighted as valid move targets overriding normal movement behavior.
+ */
 public class Flying implements Ability {
 
     @Override
