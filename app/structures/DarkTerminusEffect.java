@@ -10,6 +10,9 @@ import utils.BasicObjectBuilders;
 import structures.basic.Tile;
 import utils.StaticConfFiles;
 
+/* Implementation for Dark Terminus - Identify all the non-avatar enemy units on the board and then
+pick one. The selected unit will get killed immediately when this card is played. */
+
 public class DarkTerminusEffect implements SpellEffect {
 
     @Override

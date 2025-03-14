@@ -9,6 +9,9 @@ import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;
 import utils.StaticConfFiles;
 
+/* Implementation of Sundrop Elixir - Looks for damaged allied units on the board and heals them
+* by 4. */
+
 public class SundropElixir implements SpellEffect {
     @Override
     public void highlightValidTargets(ActorRef out, GameState gameState, Tile tile) {

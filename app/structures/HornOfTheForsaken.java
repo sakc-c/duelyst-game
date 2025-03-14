@@ -13,6 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/* Implementation of Horn Of The Foresaken - Equip the human player with an artifact. The artifact
+* loses 1 health each time the avatar is attacked and gets destroyed after it has been attacked
+* three times. Human avatar's health does not change till the time artifact is present. A wraithling
+* is summoned whenever the avatar is attacked. */
+
 public class HornOfTheForsaken implements SpellEffect, OnHitEventListener {
 
     @Override

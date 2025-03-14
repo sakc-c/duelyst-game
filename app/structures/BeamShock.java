@@ -6,6 +6,8 @@ import structures.basic.Tile;
 import structures.basic.Unit;
 import structures.basic.UnitAnimationType;
 
+/* Implementation of BeamShock - Identify enemy units on the board which are not the avatar
+* and stun one of those units for one turn */
 
 
 public class BeamShock implements SpellEffect {

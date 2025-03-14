@@ -8,6 +8,8 @@ import structures.basic.Unit;
 
 import java.util.List;
 
+/* Implementation of TrueStrike - Deals two damage to an enemy unit(excluding avatar). */
+
 public class TrueStrike implements SpellEffect {
 
     @Override
